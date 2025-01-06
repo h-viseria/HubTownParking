@@ -6,11 +6,24 @@
     <meta http-equiv="X-UA-Compatible" content="ie=edge">
     <title>Parking App</title>
     <link rel="manifest" href="/manifest.json">
-    <script>
-        window.location.href = "https://script.google.com/macros/s/AKfycbwTV2A5IVeB1cM8ks7R0NzrXxseAIIDttyMQj06E4fytbXsUWzDVwDJPOvnLOKLI5uVjg/exec";
-    </script>
+    <link rel="stylesheet" href="style.css">
 </head>
 <body>
-    <h1>Redirecting...</h1>
+    <h1>Loading Parking App...</h1>
+    <div class="spinner"></div> <!-- Optional loading spinner -->
+    
+    <script>
+        // Service worker registration
+        if ('serviceWorker' in navigator) {
+            navigator.serviceWorker.register('/service-worker.js')
+                .then(() => console.log("Service Worker Registered"))
+                .catch(err => console.log("Service Worker Failed", err));
+        }
+
+        // Delay redirect to allow PWA registration
+        setTimeout(function () {
+            window.location.href = "https://script.google.com/macros/s/AKfycbwTV2A5IVeB1cM8ks7R0NzrXxseAIIDttyMQj06E4fytbXsUWzDVwDJPOvnLOKLI5uVjg/exec";
+        }, 3000);  // Wait 3 seconds
+    </script>
 </body>
 </html>
