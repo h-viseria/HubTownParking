@@ -1,18 +1,20 @@
-self.addEventListener('install', (event) => {
-    event.waitUntil(
-        caches.open('static-v1').then((cache) => {
-            return cache.addAll([
-                'index.html',
-                'style.css',
-                'manifest.json',
-                'icons/IMG_1366.png'
-            ]);
-        }).catch(function(error) {
+self.addEventListener('install', function(event) {
+  event.waitUntil(
+    caches.open('hubtownparking-v1').then(function(cache) {
+      return cache.addAll([
+        './',
+        './index.html',
+        './manifest.json',
+        './service-worker.js',
+        './icon/icon-192.png',
+        './icon/icon-512.png'
+      ]).catch(function(error) {
         console.error('Cache addAll failed:', error);
-      }
-    );
+      });
+    })
+  );
     console.log('Service Worker Installed');
-    self.skipWaiting();
+    self.skipWaiting();    
 });
 
 self.addEventListener('fetch', (event) => {
