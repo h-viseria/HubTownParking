@@ -8,12 +8,12 @@
   "description": "Parking Slot Manager",
   "icons": [
     {
-      "src": "/icons/IMG_1366.png",
+      "src": "icons/IMG_1366.png",
       "sizes": "192x192",
       "type": "image/png"
     },
     {
-      "src": "/icons/IMG_1365.png",
+      "src": "icons/IMG_1365.png",
       "sizes": "512x512",
       "type": "image/png"
     }
