@@ -19,7 +19,20 @@
                 .then(() => console.log("Service Worker Registered"))
                 .catch(err => console.log("Service Worker Failed", err));
         }
+    </script>
 
+    <div id="ios-install-prompt" style="display: none;">
+        <p>Tap <img src="icon/share-icon.png" width="16"> and select "Add to Home Screen"</p>
+    </div>
+
+<script>
+    // Detect if on iOS Safari
+    const isIos = /iphone|ipad|ipod/.test(navigator.userAgent.toLowerCase());
+    const isInStandaloneMode = ('standalone' in window.navigator) && window.navigator.standalone;
+
+    if (isIos && !isInStandaloneMode) {
+        document.getElementById('ios-install-prompt').style.display = 'block';
+    }
         // Delay redirect to allow PWA registration
         setTimeout(function () {
             window.location.href = "https://script.google.com/macros/s/AKfycbwTV2A5IVeB1cM8ks7R0NzrXxseAIIDttyMQj06E4fytbXsUWzDVwDJPOvnLOKLI5uVjg/exec";
