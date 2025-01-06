@@ -7,7 +7,9 @@ self.addEventListener('install', (event) => {
                 'manifest.json',
                 'icons/IMG_1366.png'
             ]);
-        })
+        }).catch(function(error) {
+        console.error('Cache addAll failed:', error);
+      }
     );
     console.log('Service Worker Installed');
     self.skipWaiting();
