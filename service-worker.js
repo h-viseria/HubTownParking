@@ -2,10 +2,10 @@ self.addEventListener('install', (event) => {
     event.waitUntil(
         caches.open('static-v1').then((cache) => {
             return cache.addAll([
-                '/index.html',
-                '/style.css',
-                '/manifest.json',
-                '/icon/icon-192x192.png'
+                './index.html',
+                './style.css',
+                './manifest.json',
+                './icons/IMG_1366.png'
             ]);
         })
     );
