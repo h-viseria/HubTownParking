@@ -216,13 +216,17 @@ button:disabled {
         console.log('OAuth Token:', tokenResponse.access_token);
       },
     });
+
+     authenticate();
+    fetchMetadata();
+    fetchOrders();
+
   }
 
   // Function to trigger authentication
   function authenticate() {
     if (!tokenClient) {
       console.error('OAuth client not initialized. Make sure the library is loaded.');
-      initializeOAuth();
       return;
     }
     tokenClient.requestAccessToken();
@@ -470,9 +474,6 @@ button:disabled {
     }
 
     // Fetch initial data
-    authenticate();
-    fetchMetadata();
-    fetchOrders();
   </script>
 
 </body>
