@@ -213,14 +213,13 @@ button:disabled {
       client_id: '927225206545-vvf4jesk7glft8ecq756m7gmf135ivnq.apps.googleusercontent.com', // Replace with your client ID
       scope: 'https://www.googleapis.com/auth/script.projects',
       callback: (tokenResponse) => {
-        console.log('OAuth Token:', tokenResponse.access_token);
-     //   authenticate();
+        console.log('OAuth Token:', tokenResponse.access_token);     
         fetchMetadata();
         fetchOrders();
 
       },
     });
-
+    authenticate();
 
   }
 
@@ -235,7 +234,7 @@ button:disabled {
 
     // Make a POST request to the API Executable
     async function callAppsScriptAPI(functionName, parameters = []) {
-      const accessToken = tokenClient.getAccessToken();
+      const accessToken = tokenClient.requestAccessToken();
 
       if (!accessToken) {
         alert('Please authenticate first.');
