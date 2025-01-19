@@ -1,0 +1,172 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <title>Order Management</title>
+  <style>
+    /* Include your CSS styles here */
+  </style>
+</head>
+<body>
+  <div class="container">
+    <!-- Main Form -->
+    <div class="main-content" id="main-content">
+      <h1 id="pageName">MASTERTINT INNOVATIONS</h1>
+      <h2 id="formTitle">New Order</h2>
+      <form>
+        <select id="clientField">
+          <option value="">Select Client</option>
+        </select>
+        <select id="modeField">
+          <option value="">Select Payment Mode</option>
+          <option value="Cash">Cash</option>
+          <option value="Bill">Bill</option>
+        </select>
+        <div id="itemRows">
+          <div class="itemRow">
+            <select class="category">
+              <option value="">Company</option>
+            </select>
+            <select class="product">
+              <option value="">Size</option>
+            </select><br>
+            <label>Quantity</label>
+            <input type="number" title="Enter Quantity" class="quantity" placeholder="Quantity" min="1" />
+            <label>Rate</label>
+            <input type="number" title="Enter Rate" class="rate" placeholder="Rate" min="1" />
+            <select class="variant">
+              <option value="">Rate</option>
+            </select>
+            <button type="button" onclick="removeRow(this)">-</button>
+          </div>
+        </div>
+        <button type="button" id="addRowBtn" onclick="addRow()">+ Add Item</button>
+        <input type="text" id="commentsField" class="comments" placeholder="Enter Description here.." min="1" />
+        <button type="button" id="submitBtn" onclick="submitOrder()">Submit</button>
+      </form>
+    </div>
+
+    <!-- Status Ribbon -->
+    <div class="status-ribbon" id="statusRibbon"></div>
+
+    <!-- Add New Order and Order List -->
+    <div class="bottomContent" id="bottom-content">
+      <div class="add-order-btn" onclick="addNewOrder()">+ Add New Order</div>
+      <h3>Your Orders</h3>
+      <ul class="orders-list" id="orderList"></ul>
+    </div>
+  </div>
+
+  <script>
+    const SCRIPT_ID = 'your-script-id'; // Replace with your Apps Script Script ID
+    const CLIENT_ID = 'your-client-id.apps.googleusercontent.com'; // Replace with your Google OAuth 2.0 Client ID
+    const API_SCOPE = 'https://www.googleapis.com/auth/script.projects';
+    let metadata;
+
+    // Initialize the Google OAuth 2.0 token client
+    const tokenClient = google.accounts.oauth2.initTokenClient({
+      client_id: CLIENT_ID,
+      scope: API_SCOPE,
+      callback: (tokenResponse) => {
+        console.log('OAuth Token:', tokenResponse.access_token);
+      }
+    });
+
+    // Authenticate the user and get an access token
+    function authenticate() {
+      tokenClient.requestAccessToken();
+    }
+
+    // Make a POST request to the API Executable
+    async function callAppsScriptAPI(functionName, parameters = []) {
+      const accessToken = tokenClient.getAccessToken();
+
+      if (!accessToken) {
+        alert('Please authenticate first.');
+        return;
+      }
+
+      const url = `https://script.googleapis.com/v1/scripts/${SCRIPT_ID}:run`;
+      const body = {
+        function: functionName,
+        parameters: parameters,
+        devMode: true
+      };
+
+      try {
+        const response = await fetch(url, {
+          method: 'POST',
+          headers: {
+            'Authorization': `Bearer ${accessToken}`,
+            'Content-Type': 'application/json'
+          },
+          body: JSON.stringify(body)
+        });
+
+        const result = await response.json();
+        if (result.error) {
+          console.error('API Error:', result.error);
+          alert('Error: ' + result.error.message);
+          return null;
+        }
+
+        return result.response.result;
+      } catch (error) {
+        console.error('Fetch Error:', error);
+        alert('An error occurred. Check the console for details.');
+      }
+    }
+
+    // Fetch metadata
+    async function fetchMetadata() {
+      metadata = await callAppsScriptAPI('getMetadata');
+      if (metadata) {
+        populateClientDropdown();
+        populateDropdowns();
+      }
+    }
+
+    // Fetch orders
+    async function fetchOrders() {
+      const orders = await callAppsScriptAPI('getUserOrdersList');
+      if (orders) {
+        displayOrders(orders);
+      }
+    }
+
+    // Submit an order
+    async function submitOrder() {
+      const client = document.getElementById("clientField").value;
+      const mode = document.getElementById("modeField").value;
+      const comments = document.getElementById("commentsField").value;
+
+      const rows = document.querySelectorAll('.itemRow');
+      const items = Array.from(rows).map(row => ({
+        category: row.querySelector('.category').value,
+        product: row.querySelector('.product').value,
+        variant: row.querySelector('.variant').value,
+        quantity: row.querySelector('.quantity').value
+      }));
+
+      const orderData = {
+        client,
+        mode,
+        comments,
+        items
+      };
+
+      const response = await callAppsScriptAPI('submitOrder', [orderData]);
+      if (response) {
+        document.getElementById("statusRibbon").textContent = response;
+        fetchOrders();
+        addNewOrder();
+      }
+    }
+
+    // Call the metadata and orders on page load
+    authenticate();
+    fetchMetadata();
+    fetchOrders();
+  </script>
+  <script src="https://accounts.google.com/gsi/client" async defer></script>
+</body>
+</html>
