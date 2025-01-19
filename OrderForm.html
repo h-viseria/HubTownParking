@@ -207,6 +207,7 @@ button:disabled {
     let metadata;
 
   let tokenClient;
+  let access_token;
 
   function initializeOAuth() {
     tokenClient = google.accounts.oauth2.initTokenClient({
@@ -214,12 +215,14 @@ button:disabled {
       scope: 'https://www.googleapis.com/auth/script.projects',
       callback: (tokenResponse) => {
         console.log('OAuth Token:', tokenResponse.access_token);     
+        access_token = tokenResponse.access_token;
+        authenticate();
         fetchMetadata();
         fetchOrders();
 
       },
     });
-    authenticate();
+    
 
   }
 
@@ -234,7 +237,7 @@ button:disabled {
 
     // Make a POST request to the API Executable
     async function callAppsScriptAPI(functionName, parameters = []) {
-      const accessToken = tokenClient.requestAccessToken();
+      const accessToken = access_token;
 
       if (!accessToken) {
         alert('Please authenticate first.');
