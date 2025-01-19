@@ -197,59 +197,10 @@ button:disabled {
   width : 50%;
 }    
   </style>
-</head>
-<body>
-  <div class="container">
-    <!-- Main Form -->
-    <div class="main-content" id="main-content">
-      <h1 id="pageName">MASTERTINT INNOVATIONS</h1>
-      <h2 id="formTitle">New Order</h2>
-      <form>
-        <select id="clientField">
-          <option value="">Select Client</option>
-        </select>
-        <select id="modeField">
-          <option value="">Select Payment Mode</option>
-          <option value="Cash">Cash</option>
-          <option value="Bill">Bill</option>
-        </select>
-        <div id="itemRows">
-          <div class="itemRow">
-            <select class="category">
-              <option value="">Company</option>
-            </select>
-            <select class="product">
-              <option value="">Size</option>
-            </select><br>
-            <label>Quantity</label>
-            <input type="number" title="Enter Quantity" class="quantity" placeholder="Quantity" min="1" />
-            <label>Rate</label>
-            <input type="number" title="Enter Rate" class="rate" placeholder="Rate" min="1" />
-            <select class="variant">
-              <option value="">Rate</option>
-            </select>
-            <button type="button" onclick="removeRow(this)">-</button>
-          </div>
-        </div>
-        <button type="button" id="addRowBtn" onclick="addRow()">+ Add Item</button>
-        <input type="text" id="commentsField" class="comments" placeholder="Enter Description here.." min="1" />
-        <button type="button" id="submitBtn" onclick="submitOrder()">Submit</button>
-      </form>
-    </div>
-
-    <!-- Status Ribbon -->
-    <div class="status-ribbon" id="statusRibbon"></div>
-
-    <!-- Add New Order and Order List -->
-    <div class="bottomContent" id="bottom-content">
-      <div class="add-order-btn" onclick="addNewOrder()">+ Add New Order</div>
-      <h3>Your Orders</h3>
-      <ul class="orders-list" id="orderList"></ul>
-    </div>
-  </div>
-
+    <script src="https://accounts.google.com/gsi/client" async defer></script>
   <script>
-    const SCRIPT_ID = '1Aja6tuiUG-fEVxwNVqZNKictm5uYM3pBO7aKfbiuYO9xES9oEXksMTiZ'; // Replace with your Apps Script Script ID
+
+        const SCRIPT_ID = '1Aja6tuiUG-fEVxwNVqZNKictm5uYM3pBO7aKfbiuYO9xES9oEXksMTiZ'; // Replace with your Apps Script Script ID
     const CLIENT_ID = '927225206545-vvf4jesk7glft8ecq756m7gmf135ivnq.apps.googleusercontent.com'; // Replace with your Google OAuth 2.0 Client ID
     const API_SCOPE = 'https://www.googleapis.com/auth/script.projects';
     let metadata;
@@ -307,6 +258,61 @@ button:disabled {
         alert('An error occurred. Check the console for details.');
       }
     }
+
+  </script>
+</head>
+
+<body>
+  <div class="container">
+    <!-- Main Form -->
+    <div class="main-content" id="main-content">
+      <h1 id="pageName">MASTERTINT INNOVATIONS</h1>
+      <h2 id="formTitle">New Order</h2>
+      <form>
+        <select id="clientField">
+          <option value="">Select Client</option>
+        </select>
+        <select id="modeField">
+          <option value="">Select Payment Mode</option>
+          <option value="Cash">Cash</option>
+          <option value="Bill">Bill</option>
+        </select>
+        <div id="itemRows">
+          <div class="itemRow">
+            <select class="category">
+              <option value="">Company</option>
+            </select>
+            <select class="product">
+              <option value="">Size</option>
+            </select><br>
+            <label>Quantity</label>
+            <input type="number" title="Enter Quantity" class="quantity" placeholder="Quantity" min="1" />
+            <label>Rate</label>
+            <input type="number" title="Enter Rate" class="rate" placeholder="Rate" min="1" />
+            <select class="variant">
+              <option value="">Rate</option>
+            </select>
+            <button type="button" onclick="removeRow(this)">-</button>
+          </div>
+        </div>
+        <button type="button" id="addRowBtn" onclick="addRow()">+ Add Item</button>
+        <input type="text" id="commentsField" class="comments" placeholder="Enter Description here.." min="1" />
+        <button type="button" id="submitBtn" onclick="submitOrder()">Submit</button>
+      </form>
+    </div>
+
+    <!-- Status Ribbon -->
+    <div class="status-ribbon" id="statusRibbon"></div>
+
+    <!-- Add New Order and Order List -->
+    <div class="bottomContent" id="bottom-content">
+      <div class="add-order-btn" onclick="addNewOrder()">+ Add New Order</div>
+      <h3>Your Orders</h3>
+      <ul class="orders-list" id="orderList"></ul>
+    </div>
+  </div>
+
+  <script>
 
     // Fetch metadata
     async function fetchMetadata() {
@@ -459,6 +465,6 @@ button:disabled {
     fetchMetadata();
     fetchOrders();
   </script>
-  <script src="https://accounts.google.com/gsi/client" async defer></script>
+
 </body>
 </html>
