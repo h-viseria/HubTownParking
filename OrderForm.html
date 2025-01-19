@@ -195,8 +195,7 @@ button:disabled {
 }
 .product {
   width : 50%;
-}
-    
+}    
   </style>
 </head>
 <body>
@@ -326,6 +325,112 @@ button:disabled {
       }
     }
 
+    // Populate client dropdown
+    function populateClientDropdown() {
+      const clients = [...new Set(metadata.map(row => row[0]))];
+      const clientField = document.getElementById("clientField");
+
+      clients.forEach(client => {
+        const option = document.createElement("option");
+        option.text = client;
+        clientField.add(option);
+      });
+    }
+
+    // Populate dropdowns
+    function populateDropdowns() {
+      const categories = [...new Set(metadata.map(row => row[2]))];
+      const categoryFields = document.querySelectorAll(".category");
+
+      categoryFields.forEach(select => {
+        select.innerHTML = `<option value="">Company</option>`;
+        categories.forEach(category => {
+          const option = document.createElement("option");
+          option.text = category;
+          select.add(option);
+        });
+
+        select.addEventListener("change", function () {
+          populateProductsAndVariants(this);
+        });
+      });
+    }
+
+    // Populate products and variants
+    function populateProductsAndVariants(categorySelect) {
+      const row = categorySelect.closest(".itemRow");
+      const selectedCategory = categorySelect.value;
+
+      const productSelect = row.querySelector(".product");
+      const variantSelect = row.querySelector(".variant");
+
+      productSelect.innerHTML = `<option value="">Size</option>`;
+      variantSelect.innerHTML = `<option value="">Rate</option>`;
+
+      if (selectedCategory) {
+        const filteredProducts = metadata
+          .filter(row => row[2] === selectedCategory)
+          .map(row => row[3]);
+
+        [...new Set(filteredProducts)].forEach(product => {
+          const option = document.createElement("option");
+          option.text = product;
+          productSelect.add(option);
+        });
+
+        productSelect.addEventListener("change", function () {
+          populateVariants(this);
+        });
+      }
+    }
+
+    // Populate variants
+    function populateVariants(productSelect) {
+      const row = productSelect.closest(".itemRow");
+      const selectedCategory = row.querySelector(".category").value;
+      const selectedProduct = productSelect.value;
+
+      const variantSelect = row.querySelector(".variant");
+      variantSelect.innerHTML = `<option value="">Rate</option>`;
+
+      if (selectedCategory && selectedProduct) {
+        const filteredVariants = metadata
+          .filter(row => row[2] === selectedCategory && row[3] === selectedProduct)
+          .map(row => row[4]);
+
+        [...new Set(filteredVariants)].forEach(variant => {
+          const option = document.createElement("option");
+          option.text = variant;
+          variantSelect.add(option);
+        });
+      }
+    }
+
+    // Add a new item row
+    function addRow() {
+      const row = document.querySelector(".itemRow").cloneNode(true);
+      const itemRows = document.getElementById("itemRows");
+      itemRows.appendChild(row);
+
+      row.querySelector(".category").value = "";
+      row.querySelector(".product").innerHTML = `<option value="">Size</option>`;
+      row.querySelector(".quantity").value = "";
+      row.querySelector(".rate").value = "";
+      row.querySelector(".variant").innerHTML = `<option value="">Rate</option>`;
+
+      row.querySelector(".category").addEventListener("change", function () {
+        populateProductsAndVariants(this);
+      });
+    }
+
+    // Remove an item row
+    function removeRow(button) {
+      const itemRows = document.querySelectorAll(".itemRow");
+      if (itemRows.length > 1) {
+        button.closest(".itemRow").remove();
+      }
+    }
+
     // Submit an order
     async function submitOrder() {
       const client = document.getElementById("clientField").value;
@@ -340,13 +445,7 @@ button:disabled {
         quantity: row.querySelector('.quantity').value
       }));
 
-      const orderData = {
-        client,
-        mode,
-        comments,
-        items
-      };
-
+      const orderData = { client, mode, comments, items };
       const response = await callAppsScriptAPI('submitOrder', [orderData]);
       if (response) {
         document.getElementById("statusRibbon").textContent = response;
@@ -355,7 +454,7 @@ button:disabled {
       }
     }
 
-    // Call the metadata and orders on page load
+    // Fetch initial data
     authenticate();
     fetchMetadata();
     fetchOrders();
