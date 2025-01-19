@@ -197,27 +197,35 @@ button:disabled {
   width : 50%;
 }    
   </style>
-    <script src="https://accounts.google.com/gsi/client" async defer></script>
+  <script src="https://accounts.google.com/gsi/client" async defer onload="initializeOAuth()"></script>
+
   <script>
 
-        const SCRIPT_ID = '1Aja6tuiUG-fEVxwNVqZNKictm5uYM3pBO7aKfbiuYO9xES9oEXksMTiZ'; // Replace with your Apps Script Script ID
+    const SCRIPT_ID = '1Aja6tuiUG-fEVxwNVqZNKictm5uYM3pBO7aKfbiuYO9xES9oEXksMTiZ'; // Replace with your Apps Script Script ID
     const CLIENT_ID = '927225206545-vvf4jesk7glft8ecq756m7gmf135ivnq.apps.googleusercontent.com'; // Replace with your Google OAuth 2.0 Client ID
     const API_SCOPE = 'https://www.googleapis.com/auth/script.projects';
     let metadata;
 
-    // Initialize the Google OAuth 2.0 token client
-    const tokenClient = google.accounts.oauth2.initTokenClient({
-      client_id: CLIENT_ID,
-      scope: API_SCOPE,
+  let tokenClient;
+
+  function initializeOAuth() {
+    tokenClient = google.accounts.oauth2.initTokenClient({
+      client_id: 'your-client-id.apps.googleusercontent.com', // Replace with your client ID
+      scope: 'https://www.googleapis.com/auth/script.projects',
       callback: (tokenResponse) => {
         console.log('OAuth Token:', tokenResponse.access_token);
-      }
+      },
     });
+  }
 
-    // Authenticate the user and get an access token
-    function authenticate() {
-      tokenClient.requestAccessToken();
+  // Function to trigger authentication
+  function authenticate() {
+    if (!tokenClient) {
+      console.error('OAuth client not initialized. Make sure the library is loaded.');
+      return;
     }
+    tokenClient.requestAccessToken();
+  }
 
     // Make a POST request to the API Executable
     async function callAppsScriptAPI(functionName, parameters = []) {
