@@ -698,6 +698,10 @@ function rangeFromString(input) {
           categoryField.add(option);
         });
 
+        categoryField.addEventListener("change", function () {
+          populateProductsAndVariants(this);
+        });
+
         // Populate products and variants dynamically based on category
         populateProductsAndVariants(categoryField);
 
