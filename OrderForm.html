@@ -548,6 +548,8 @@ function rangeFromString(input) {
     // Populate products and variants
     function populateProductsAndVariants(categorySelect) {
       const row = categorySelect.closest(".itemRow");
+      row.style.paddingTop = "5px";
+      row.style.borderTop = "2px solid red";
       const selectedCategory = categorySelect.value;
 
       const productSelect = row.querySelector(".product");
@@ -599,6 +601,8 @@ function rangeFromString(input) {
     function addRow() {
       const row = document.querySelector(".itemRow").cloneNode(true);
       const itemRows = document.getElementById("itemRows");
+      row.style.paddingTop = "5px";
+      row.style.borderTop = "2px solid red";
       itemRows.appendChild(row);
 
       row.querySelector(".category").value = "";
