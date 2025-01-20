@@ -206,6 +206,7 @@ button:disabled {
     const API_SCOPE = 'https://www.googleapis.com/auth/script.projects https://www.googleapis.com/auth/script.external_request https://www.googleapis.com/auth/spreadsheets https://www.googleapis.com/auth/script.container.ui https://www.googleapis.com/auth/userinfo.email';
     
     let metadata;
+    let currentOrderId = null;
 
   let tokenClient;
   let access_token;
@@ -413,6 +414,33 @@ function filterTable(table, query) {
       populateDropdowns();
       document.getElementById('addRowBtn').disabled = false;
     }
+
+    
+function rangeFromString(input) {
+    // Split the input string by comma and convert parts to numbers
+    const parts = input.split('=').map(part => parseInt(part.trim(), 10));
+    
+    
+    if (parts.length < 1 || parts.some(isNaN)) {
+        throw new Error("Input must be a string with two valid numbers separated by a comma.");
+    }
+
+    min = parts[0] ;
+    max = parts[0] + 20;
+    if (parts.length > 1) {
+    // Determine min and max
+     [min, max] = parts[0] < parts[1] ? [parts[0], parts[1]] : [parts[1], parts[0]];
+    } 
+
+    // Generate range of numbers from min to max
+    const result = [];
+    for (let i = min; i <= max && i<= (min + 20); i++) {
+        result.push(i);
+    }
+
+    return result;
+}
+
     
   </script>
 </head>
@@ -559,7 +587,7 @@ function filterTable(table, query) {
           .filter(row => row[2] === selectedCategory && row[3] === selectedProduct)
           .map(row => row[4]);
 
-        [...new Set(filteredVariants)].forEach(variant => {
+        [...new Set(rangeFromString(String(filteredVariants[0])))].forEach(variant => {
           const option = document.createElement("option");
           option.text = variant;
           variantSelect.add(option);
@@ -614,6 +642,86 @@ function filterTable(table, query) {
         addNewOrder();
       }
     }
+
+    async function loadOrder(orderId) {
+  currentOrderId = orderId; // Set the global currentOrderId
+  document.getElementById("formTitle").textContent = `Edit Order: ${orderId}`; // Update form title
+
+  // Fetch the order details from the server
+  const orderDetails = await callAppsScriptAPI('getOrderDetails', [orderId]);
+    if (orderDetails) {
+      // Populate the client field
+      document.getElementById("clientField").value = orderDetails.client;
+      document.getElementById("modeField").value = orderDetails.mode;
+      document.getElementById("commentsField").value = orderDetails.comments;
+
+      // Clear and repopulate item rows
+      const itemRowsContainer = document.getElementById("itemRows");
+      itemRowsContainer.innerHTML = ""; // Clear any existing rows
+
+      orderDetails.items.forEach(item => {
+        const row = document.createElement("div");
+        row.className = "itemRow";
+
+        row.innerHTML = `
+          <select class="category">
+            <option value="">Company</option>
+          </select>
+          <select class="product">
+            <option value="">Size</option>
+          </select><BR>
+          <label>Quantity</label>
+          <input type="number" title="Enter Quantity" class="quantity" placeholder="Quantity" min="1" />
+          <label>Rate</label>
+          <input type="number" title="Enter Rate" class="rate" placeholder="Rate" min="1" />
+          <select class="variant">
+            <option value="">Rate</option>
+          </select>                    
+        `;
+
+        itemRowsContainer.appendChild(row);
+
+        // Populate the category dropdown
+        const categoryField = row.querySelector(".category");
+        const productField = row.querySelector(".product");
+        const variantField = row.querySelector(".variant");
+        const quantityField = row.querySelector(".quantity");
+        const rateField = row.querySelector(".rate");
+
+        // Populate categories
+        const categories = [...new Set(metadata.map(meta => meta[2]))];
+        categories.forEach(category => {
+          const option = document.createElement("option");
+          option.value = category;
+          option.text = category;
+          if (category === item.category) option.selected = true;
+          categoryField.add(option);
+        });
+
+        // Populate products and variants dynamically based on category
+        populateProductsAndVariants(categoryField);
+
+        // Set the product and variant
+        productField.value = item.product;
+        
+
+        // Populate variants dynamically based on product
+        populateVariants(productField);
+        rateField.value = item.variant;
+        variantField.value = item.variant;
+
+        // Set the quantity
+        quantityField.value = item.quantity;
+
+        document.getElementById('addRowBtn').disabled = true;
+
+      });
+      document.getElementById("statusRibbon").textContent = 'Order loaded';
+    } else {
+      document.getElementById("statusRibbon").textContent= "Order details not found for :" + orderId;
+    }
+  }
+
 
     // Fetch initial data
   </script>
