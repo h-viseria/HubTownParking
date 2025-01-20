@@ -1,0 +1,689 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <title>Order Management</title>
+  <style>
+/* Reset some default browser styles */
+* {
+  margin: 0;
+  padding: 0;
+  box-sizing: border-box;
+  font-family: 'Arial', sans-serif;
+}
+
+/* General Body Styles */
+body {
+  background-color: #181818;
+  color: #fff;
+  font-size: 20px;
+  line-height: 1.6;
+  padding: 20px;
+  display: flex;
+  justify-content: center;
+  align-items: flex-start;
+}
+
+/* Container for the entire page */
+.container {
+  width: 100%;
+  max-width: 900px;
+  display: flex;
+  flex-direction: column;
+  gap: 20px;
+}
+
+/* Main Form Styles */
+.main-content {
+  background-color: #222;
+  padding: 20px;
+  border-radius: 8px;
+  box-shadow: 0 4px 8px rgba(0, 0, 0, 0.3);
+}
+
+.main-content h1 {
+  font-size: 24px;
+  margin-bottom: 20px;
+  color: #f0b400;
+}
+
+.main-content h2 {
+  font-size: 20px;
+  margin-bottom: 10px;
+}
+
+.main-content label {
+  margin-top: 10px;
+  font-weight: bold;
+}
+
+form {
+  display: flex;
+  flex-direction: column;
+  gap: 15px;
+}
+
+form select,
+form label,
+form input[type="number"],
+form input[type="text"],
+form textarea {
+  background-color: #333;
+  border: 1px solid #444;
+  color: #fff;
+  padding: 10px;
+  border-radius: 5px;
+  font-size: 30px;
+}
+
+
+
+form select:focus,
+form label:focus,
+form input[type="number"]:focus,
+form input[type="text"]:focus,
+form textarea:focus {
+  border-color: #f0b400;
+  outline: none;
+}
+
+form button {
+  background-color: #f0b400;
+  color: #252525;
+  padding: 10px;
+  border-radius: 5px;
+  cursor: pointer;
+  font-size: 20px;
+  transition: background-color 0.3s ease;
+}
+
+form button:hover {
+  background-color: #f8c247;
+}
+
+
+/* Status Ribbon Styling */
+.status-ribbon {
+  background-color: #252525;
+  color: #f0b400;
+  padding: 10px;
+  border-radius: 5px;
+  text-align: center;
+  font-size: 18px;
+  margin-top: 10px;
+}
+
+/* Add New Order Button */
+.add-order-btn {
+  background-color: #f0b400;
+  color: #252525;
+  padding: 10px;
+  border-radius: 5px;
+  font-size: 20px;
+  text-align: center;
+  cursor: pointer;
+  transition: background-color 0.3s ease;
+}
+
+.add-order-btn:hover {
+  background-color: #f8c247;
+}
+
+button:disabled {
+    background-color: #bdc3c7;
+    cursor: not-allowed;
+    opacity: 0.7;  /* Slight transparency for disabled state */
+    box-shadow: none;  /* Remove hover effect for disabled button */
+}
+
+
+/* Orders List Styling */
+.orders-list {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  margin-top: 20px;
+}
+
+.orders-list li {
+  background-color: #333;
+  padding: 10px;
+  border-radius: 5px;
+  cursor: pointer;
+  transition: background-color 0.3s ease;
+}
+
+.orders-list li:hover {
+  background-color: #f0b400;
+  color: #252525;
+}
+
+/* Responsive Design */
+@media (max-width: 768px) {
+  .container {
+    gap: 10px;
+  }
+
+  .main-content {
+    padding: 15px;
+  }
+
+  .status-ribbon {
+    font-size: 20px;
+  }
+
+  .add-order-btn {
+    padding: 8px;
+    font-size: 20px;
+  } 
+}
+
+ .variant {
+    width : 25%;
+  }
+
+.quantity {
+  width : 23%;
+}
+.rate {
+  visibility: hidden;
+  width : 5px;
+}
+
+.category {
+  width : 40%;
+}
+.product {
+  width : 50%;
+}
+  </style>
+</head>
+<body>
+  
+ <div class="container">
+    <!-- Main Form -->
+    <div class="main-content" id="main-content">
+      <h1 id="pageName">MASTERTINT INNOVATIONS</h1>
+      <h2 id="formTitle">New Order</h2>
+      <form>        
+        <select id="clientField">
+          <option value="">Select Client</option>
+        </select>
+        <select id="modeField">
+          <option value="">Select Payment Mode</option>
+          <option value="Cash">Cash</option>
+          <option value="Bill">Bill</option>
+        </select>
+        <div id="itemRows">
+          <div class="itemRow">
+            <select class="category">
+              <option value="">Company</option>
+            </select>
+            <select class="product">
+              <option value="">Size</option>
+            </select><BR>
+            <label>Quantity</label>
+            <input type="number" title="Enter Quantity" class="quantity" placeholder="Quantity" min="1" />
+            <label>Rate</label>
+            <input type="number" title="Enter Rate" class="rate" placeholder="Rate" min="1" />
+            <select class="variant">
+              <option value="">Rate</option>
+            </select>            
+            <button type="button" onclick="removeRow(this)">-</button>
+          </div>
+        </div>
+        <button type="button" id="addRowBtn" onclick="addRow()">+ Add Item</button>
+        <input type="text" id="commentsField" class="comments" placeholder="Enter Description here.." min="1" />
+        <button type="button" id="submitBtn" onclick="submitOrder()">Submit</button>
+      </form>
+    </div>
+
+    <!-- Status Ribbon -->
+    <div class="status-ribbon" id="statusRibbon"></div>
+
+    <!-- Add New Order and Order List -->
+    <div class="bottomContent" id="bottom-content">
+      <div class="add-order-btn" onclick="addNewOrder()">+ Add New Order</div>
+      <h3>Your Orders</h3>
+      <ul class="orders-list" id="orderList"></ul>
+    </div>
+  </div>
+
+  <script>
+    let metadata;
+    const adminUser = "priyeshdoshi3@gmail.com";
+    let currentOrderId = null;
+
+//create range from input
+function rangeFromString(input) {
+    // Split the input string by comma and convert parts to numbers
+    const parts = input.split('=').map(part => parseInt(part.trim(), 10));
+    
+    
+    if (parts.length < 1 || parts.some(isNaN)) {
+        throw new Error("Input must be a string with two valid numbers separated by a comma.");
+    }
+
+    min = parts[0] ;
+    max = parts[0] + 20;
+    if (parts.length > 1) {
+    // Determine min and max
+     [min, max] = parts[0] < parts[1] ? [parts[0], parts[1]] : [parts[1], parts[0]];
+    } 
+
+    // Generate range of numbers from min to max
+    const result = [];
+    for (let i = min; i <= max && i<= (min + 20); i++) {
+        result.push(i);
+    }
+
+    return result;
+}
+
+
+// Fetch metadata and populate dropdowns
+function fetchMetadata() {
+  google.script.run.withSuccessHandler(function (data) {
+    metadata = data;
+    populateClientDropdown();
+    populateDropdowns(); // Populate initial dropdowns
+  }).getMetadata();
+
+}
+
+function fetchOrders() {
+  google.script.run.withSuccessHandler(function(ordersll) {
+    let myorders = ordersll;
+    console.log("Data received in browser:", myorders);
+    displayOrders(myorders);
+  })
+  .withFailureHandler(function(error) {
+    console.error("Error fetching orders:", error);
+  }).getUserOrdersList();
+}
+
+//populate client list 
+function populateClientDropdown() {
+  const userEmail = <?= userEmail ?>;  
+  const clients = [...new Set(metadata.filter(row => ((row[1] === userEmail )|| (row[1] === adminUser))).map(row => row[0]))];
+  const clientField = document.getElementById("clientField");  
+
+  clients.forEach(client => {
+    const option = document.createElement("option");
+    option.text = client;
+    clientField.add(option);
+  });
+}
+// Populate the initial dropdowns
+function populateDropdowns() {
+  const categories = [...new Set(metadata.map(row => row[2]))];
+  const categoryFields = document.querySelectorAll(".category");
+
+  categoryFields.forEach(select => {
+    select.innerHTML = `<option value="">Company</option>`;
+    categories.forEach(category => {
+      const option = document.createElement("option");
+      option.text = category;
+      select.add(option);
+    });
+
+    // Populate products and variants dynamically on change
+    select.addEventListener("change", function () {
+      populateProductsAndVariants(this);
+    });
+  });
+}
+
+// Populate product and variant dropdowns based on selected category
+function populateProductsAndVariants(categorySelect) {
+  const row = categorySelect.closest(".itemRow");
+  row.style.paddingTop = "5px";
+  row.style.borderTop = "2px solid red";
+  const selectedCategory = categorySelect.value;
+
+  const productSelect = row.querySelector(".product");
+  const variantSelect = row.querySelector(".variant");
+
+  productSelect.innerHTML = `<option value="">Size</option>`;
+  variantSelect.innerHTML = `<option value="">Rate</option>`;
+
+  if (selectedCategory) {
+    const filteredProducts = metadata
+      .filter(row => row[2] === selectedCategory)
+      .map(row => row[3]);
+
+    const uniqueProducts = [...new Set(filteredProducts)];
+    uniqueProducts.forEach(product => {
+      const option = document.createElement("option");
+      option.text = product;
+      productSelect.add(option);
+    });
+
+    // Populate variants dynamically on product change
+    productSelect.addEventListener("change", function () {
+      populateVariants(this);
+    });
+  }
+}
+
+// Populate variants based on selected product
+function populateVariants(productSelect) {
+  const row = productSelect.closest(".itemRow");
+  const selectedCategory = row.querySelector(".category").value;
+  const selectedProduct = productSelect.value;
+
+  const variantSelect = row.querySelector(".variant");
+  variantSelect.innerHTML = `<option value="">Rate</option>`;
+
+  if (selectedCategory && selectedProduct) {
+    const filteredVariants = metadata
+      .filter(row => row[2] === selectedCategory && row[3] === selectedProduct)
+      .map(row => row[4]);
+
+    const uniqueVariants = [...new Set(rangeFromString(String(filteredVariants[0])))];
+    uniqueVariants.forEach(variant => {
+      const option = document.createElement("option");
+      option.text = variant;
+      variantSelect.add(option);
+    });
+  }
+}
+
+// Add a new item row
+function addRow() {
+  const row = document.querySelector(".itemRow").cloneNode(true);
+  const itemRows = document.getElementById("itemRows");
+  row.style.paddingTop = "5px";
+  row.style.borderTop = "2px solid red";
+  itemRows.appendChild(row);
+
+  // Reset dropdowns and reinitialize events for the new row
+  row.querySelector(".category").value = "";
+  row.querySelector(".product").innerHTML = `<option value="">Size</option>`;
+  row.querySelector(".quantity").value = "";
+  row.querySelector(".rate").value = "";
+  row.querySelector(".variant").innerHTML = `<option value="">Rate</option>`;
+  
+
+  row.querySelector(".category").addEventListener("change", function () {
+    populateProductsAndVariants(this);
+  });
+}
+
+// Remove an item row
+function removeRow(button) {
+  const itemRows = document.querySelectorAll(".itemRow");
+  if (itemRows.length > 1) {
+    button.closest(".itemRow").remove();
+  }
+}
+
+    function displayOrdersOld(orders) {      
+  const orderList = document.getElementById("orderList");
+  orderList.innerHTML = "";
+
+  if (!orders || orders.length === 0) {
+    const noOrdersMessage = document.createElement("li");
+    noOrdersMessage.textContent = "No orders found.";
+    orderList.appendChild(noOrdersMessage);
+    return;
+  }
+
+  orders.forEach(order => {
+    const li = document.createElement("li");
+    li.textContent = `${order.orderId} - ${order.client}`;
+    li.onclick = () => loadOrder(order.orderId);
+    orderList.appendChild(li);
+  });
+}
+
+
+function displayOrders(orders) {
+  const orderList = document.getElementById("orderList");
+  orderList.innerHTML = "";
+
+  if (!orders || orders.length === 0) {
+    orderList.innerHTML = "<p>No orders found.</p>";
+    return;
+  }
+
+
+  const table = document.createElement("table");
+  table.classList.add("sortable");
+  table.style.borderCollapse = "collapse";
+  table.style.width = "100%";
+  table.style.fontSize = "15px"; // Reduce font size
+
+
+  // Create the table header
+  const thead = document.createElement("thead");
+  const headerRow = document.createElement("tr");
+  const headers = ["Order ID", "Client", "Mode", "Company", "Size", "Rate", "Quantity", "Timestamp", "User"];
+
+  headers.forEach(header => {
+    const th = document.createElement("th");
+    th.textContent = header;
+    th.style.border = "1px solid red";
+    th.style.cursor = "pointer";
+    th.onclick = () => sortTable(table, headers.indexOf(header)); // Add sorting functionality
+    headerRow.appendChild(th);
+  });
+
+  thead.appendChild(headerRow);
+  table.appendChild(thead);
+
+  // Create the table body
+  const tbody = document.createElement("tbody");
+  orders.forEach(order => {
+    const row = document.createElement("tr");
+
+    const cells = [
+      order.orderId,
+      order.client,
+      order.mode,
+      order.category,
+      order.product,
+      order.variant,
+      order.quantity,
+      order.timestamp,
+      order.salesEmail,
+    ];
+
+    cells.forEach(cellValue => {
+      const td = document.createElement("td");
+      td.textContent = cellValue;
+      td.style.border = "1px solid red";
+      td.style.padding = "5px";
+      row.appendChild(td);
+    });
+
+    row.onclick = () => loadOrder(order.orderId); // Add click event to load order
+    tbody.appendChild(row);
+  });
+
+  table.appendChild(tbody);
+  orderList.appendChild(table);
+
+  // Add a filter input above the table
+  const filterInput = document.createElement("input");
+  filterInput.type = "text";
+  filterInput.style.fontSize = "20px";
+  filterInput.placeholder = "Filter orders...";
+  filterInput.onkeyup = () => filterTable(table, filterInput.value);
+  orderList.insertBefore(filterInput, table);
+}
+
+// Function to sort the table
+function sortTable(table, columnIndex) {
+  const rows = Array.from(table.querySelector("tbody").rows);
+  const isAscending = table.dataset.sortOrder !== "asc";
+  rows.sort((a, b) => {
+    const aText = a.cells[columnIndex].textContent.trim();
+    const bText = b.cells[columnIndex].textContent.trim();
+    return isAscending
+      ? aText.localeCompare(bText, undefined, { numeric: true })
+      : bText.localeCompare(aText, undefined, { numeric: true });
+  });
+
+  rows.forEach(row => table.querySelector("tbody").appendChild(row));
+  table.dataset.sortOrder = isAscending ? "asc" : "desc";
+}
+
+// Function to filter the table
+function filterTable(table, query) {
+  const rows = Array.from(table.querySelector("tbody").rows);
+  rows.forEach(row => {
+    const isVisible = Array.from(row.cells).some(cell =>
+      cell.textContent.toLowerCase().includes(query.toLowerCase())
+    );
+    row.style.display = isVisible ? "" : "none";
+  });
+}
+
+
+      // Load a specific order's details into the form
+function loadOrder(orderId) {
+  currentOrderId = orderId; // Set the global currentOrderId
+  document.getElementById("formTitle").textContent = `Edit Order: ${orderId}`; // Update form title
+
+  // Fetch the order details from the server
+  google.script.run.withSuccessHandler(function (orderDetails) {
+    if (orderDetails) {
+      // Populate the client field
+      document.getElementById("clientField").value = orderDetails.client;
+      document.getElementById("modeField").value = orderDetails.mode;
+      document.getElementById("commentsField").value = orderDetails.comments;
+
+      // Clear and repopulate item rows
+      const itemRowsContainer = document.getElementById("itemRows");
+      itemRowsContainer.innerHTML = ""; // Clear any existing rows
+
+      orderDetails.items.forEach(item => {
+        const row = document.createElement("div");
+        row.className = "itemRow";
+
+        row.innerHTML = `
+          <select class="category">
+            <option value="">Company</option>
+          </select>
+          <select class="product">
+            <option value="">Size</option>
+          </select><BR>
+          <label>Quantity</label>
+          <input type="number" title="Enter Quantity" class="quantity" placeholder="Quantity" min="1" />
+          <label>Rate</label>
+          <input type="number" title="Enter Rate" class="rate" placeholder="Rate" min="1" />
+          <select class="variant">
+            <option value="">Rate</option>
+          </select>                    
+        `;
+
+        itemRowsContainer.appendChild(row);
+
+        // Populate the category dropdown
+        const categoryField = row.querySelector(".category");
+        const productField = row.querySelector(".product");
+        const variantField = row.querySelector(".variant");
+        const quantityField = row.querySelector(".quantity");
+        const rateField = row.querySelector(".rate");
+
+        // Populate categories
+        const categories = [...new Set(metadata.map(meta => meta[2]))];
+        categories.forEach(category => {
+          const option = document.createElement("option");
+          option.value = category;
+          option.text = category;
+          if (category === item.category) option.selected = true;
+          categoryField.add(option);
+        });
+
+        // Populate products and variants dynamically based on category
+        populateProductsAndVariants(categoryField);
+
+        // Set the product and variant
+        productField.value = item.product;
+        
+
+        // Populate variants dynamically based on product
+        populateVariants(productField);
+        rateField.value = item.variant;
+        variantField.value = item.variant;
+
+        // Set the quantity
+        quantityField.value = item.quantity;
+
+        document.getElementById('addRowBtn').disabled = true;
+
+      });
+    } else {
+      alert("Order details not found.");
+    }
+  }).withFailureHandler(function (error) {
+    console.error("Failed to load order details:", error);
+  }).getOrderDetails(orderId);
+}
+
+
+    function addNewOrder() {
+      currentOrderId = null;
+      document.getElementById("formTitle").textContent = "New Order";
+      document.getElementById("clientField").value = "";
+      document.getElementById("modeField").value = "";
+      document.getElementById("commentsField").value = "";
+      document.getElementById("itemRows").innerHTML = `<div class="itemRow">
+        <select class="category"><option value="">Company</option></select>
+        <select class="product"><option value="">Size</option></select><BR>
+        <label>Quantity</label>
+        <input type="number" title="Enter Quantity" class="quantity" placeholder="Quantity" min="1" />
+        <label>Rate</label>
+        <input type="number" title="Enter Rate" class="rate" placeholder="Rate" min="1" />
+        <select class="variant"><option value="">Rate</option></select>        
+        <button onclick="removeRow(this)">-</button>
+      </div>`;
+      populateDropdowns();
+      document.getElementById('addRowBtn').disabled = false;
+    }
+
+    function submitOrder() {
+        document.getElementById('addRowBtn').disabled = true;
+        document.getElementById('submitBtn').disabled = true;
+
+
+      const client = document.getElementById("clientField").value;
+      const mode = document.getElementById("modeField").value;
+      const comments = document.getElementById("commentsField").value;
+
+      const rows = document.querySelectorAll('.itemRow');
+
+      const items = Array.from(rows).map(row => ({
+        category: row.querySelector('.category').value,
+        product: row.querySelector('.product').value,
+        variant: row.querySelector('.variant').value,
+        quantity: row.querySelector('.quantity').value
+      }));
+
+      const orderData = {
+        orderId: currentOrderId,
+        client,
+        mode,
+        comments,
+        items
+      };
+
+      google.script.run.withSuccessHandler(response => {
+        document.getElementById("statusRibbon").textContent = response;        
+        fetchOrders();
+        document.getElementById('addRowBtn').disabled = false;
+        document.getElementById('submitBtn').disabled = false;
+        addNewOrder();
+      }).withFailureHandler((error) => {
+            alert('Error: ' + error.message); // Handle errors gracefully
+        document.getElementById('addRowBtn').disabled = true;
+        document.getElementById('submitBtn').disabled = true;
+      }).submitOrder(orderData);
+    }
+
+    fetchMetadata();
+    fetchOrders();
+    </script>
+</body>
+</html>
