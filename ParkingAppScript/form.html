@@ -1,0 +1,27 @@
+<!DOCTYPE html>
+<html>
+  <head>
+    <title>Parking System</title>
+    <script>
+      // Disable button and trigger action
+      function disableAndRun(button, action, param1, param2) {
+        button.disabled = true; // Disable button
+        google.script.run
+          .withSuccessHandler(updatePage)
+          [action](param1, param2);
+      }
+
+      // Update page dynamically based on response
+      function updatePage(response) {
+        const content = document.getElementById("content");
+        content.innerHTML = response; // Replace the page content dynamically
+      }
+    </script>
+  </head>
+  <body>
+    <div id="content">
+      <!-- Dynamic content from the server -->
+      <?= HtmlService.createHtmlOutputFromFile("serverSideContent").getContent(); ?>
+    </div>
+  </body>
+</html>
