@@ -1,0 +1,489 @@
+<!DOCTYPE html>
+<html>
+  <head>
+    <title>Parking System 1</title>
+    <style>
+body {
+    font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+    margin: 0;
+    padding: 0;
+    display: flex;
+    justify-content: center;
+    overflow-y: auto;
+    height: 100vh;
+    background-color: #f4f7fc;
+}
+
+.container {
+    width: 100%;
+    max-width: 600px;
+    background: #ffffff;
+    padding: 40px 30px;
+    border-radius: 12px;
+    box-shadow: 0 8px 24px rgba(0, 0, 0, 0.1);
+}
+
+h1, h2 {
+    color: #2c3e50;
+    text-align: center;
+    margin-bottom: 20px;
+}
+
+h1 {
+    font-size: 2rem;
+    font-weight: 600;
+}
+
+h2 {
+    font-size: 1.5rem;
+    font-weight: 500;
+}
+
+p {
+    color: #555;
+    font-size: 2rem;
+    line-height: 1.6;
+    text-align: center;
+}
+
+button {
+    width: 100%;
+    padding: 12px;
+    margin-top: 20px;
+    font-size: 2rem;
+    font-weight: 500;
+    color: #fff;
+    background-color: #007BFF;
+    border: none;
+    border-radius: 8px;
+    cursor: pointer;
+    transition: background-color 0.3s ease, opacity 0.3s ease;
+}
+
+
+
+button:hover {
+    background-color: #0056b3;
+}
+
+button:disabled {
+    background-color: #bdc3c7;
+    cursor: not-allowed;
+    opacity: 0.7;  /* Slight transparency for disabled state */
+    box-shadow: none;  /* Remove hover effect for disabled button */
+}
+
+#topSection {
+    position: sticky;
+    top: 0;
+    background-color: white;
+    padding: 15px;
+    z-index: 10;
+    box-shadow: 0 2px 5px rgba(0, 0, 0, 0.1);  /* Optional shadow for visibility */
+  }
+
+#removeBtn {
+    background-color: #e74c3c;
+}
+
+#removeBtn:hover {
+    background-color: #c0392b;
+}
+
+#removeBtn:disabled {
+    background-color: #d5d8dc;
+    color: #7f8c8d;
+    opacity: 0.7;
+    cursor: not-allowed;
+}
+
+form {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+}
+
+label {
+    margin: 15px 0 5px;
+    font-weight: 500;
+}
+
+input[type="text"] {
+    width: 100%;
+    padding: 10px;
+    margin-bottom: 20px;
+    border: 1px solid #ccc;
+    border-radius: 8px;
+    font-size: 1rem;
+}
+
+.footer {
+    margin-top: 30px;
+    font-size: 0.85rem;
+    color: #7f8c8d;
+    text-align: center;
+}
+
+.footer a {
+    color: #3498db;
+    text-decoration: none;
+}
+
+.footer a:hover {
+    text-decoration: underline;
+}
+
+@keyframes blink {
+    50% {
+        opacity: 0;
+    }
+}
+
+#pslot {
+    font-size: 2rem;
+    font-weight: 600;
+    color: blue;
+    text-align: center;
+}
+
+#pslot .slot {
+    font-weight: 700;
+    color: red;
+    animation: blink 1s step-start infinite;
+}
+
+#hptext {
+    font-size: 1rem;    
+    color: red;
+    text-align: center;
+}
+
+    .loading {
+      display: none;
+      font-size: 18px;
+      color: #333;
+    }
+    .spinner {
+      display: inline-block;
+      width: 30px;
+      height: 30px;
+      border: 4px solid rgba(0, 0, 0, 0.1);
+      border-left-color: #09f;
+      border-radius: 50%;
+      animation: spin 1s linear infinite;
+    }
+    @keyframes spin {
+      to {
+        transform: rotate(360deg);
+      }
+    }
+
+    #occupiedSlotsTable {
+      width: 100%;
+      border-collapse: collapse;
+      margin-top: 20px;
+    }
+    #occupiedSlotsTable th, #occupiedSlotsTable td {
+      border: 1px solid #ddd;
+      padding: 8px;
+      text-align: center;
+    }
+    #occupiedSlotsTable th {
+      background-color: #4CAF50;
+      color: white;
+    }
+
+    
+
+  #gridContainer {
+    display: grid;
+    grid-template-columns: repeat(4, 1fr); /* 4 Columns */
+    gap: 10px;
+  }
+
+     .parking-grid {
+      display: grid;
+      grid-template-columns: repeat(4, 80px);
+      grid-gap: 10px;
+      justify-content: center;
+      margin-top: 30px;
+    }
+    .slotbox {
+      width: 80px;
+      height: 80px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      border: 1px solid #ccc;
+      font-size: 16px;
+      font-weight: bold;
+      background-color: #f0f0f0;
+    }
+    .occupied {
+      background-color: #ff4d4d;  /* Red for occupied */
+      color: white;
+      border-radius: 50%;
+    }
+    .available {
+      background-color: #4CAF50;  /* Green for available */
+      color: white;
+      border-radius: 50%;
+    }
+    .na {
+      background-color: #ddd;
+      color: black;
+      pointer-events: none;
+    }
+
+
+    </style>
+    <script>
+      function handleAction(action) {
+        // Disable buttons after click to prevent multiple submissions
+        if ( document.getElementById('parkBtn'))
+         document.getElementById('parkBtn').disabled = true;
+        if (document.getElementById('removeBtn')) 
+          document.getElementById('removeBtn').disabled = true;
+        
+        document.body.style.cursor = 'wait';
+        document.getElementById('loading').style.display = 'block';
+
+        // Make the call to the server-side function
+        google.script.run
+            .withSuccessHandler((message) => {
+            //alert(message); // Optionally show a success message to the user
+            if (action == "removeCar") {              
+       
+              document.getElementById('pslot').innerHTML = "Parking Location : Not assigned";
+              document.getElementById('removeBtn').disabled = true;
+              document.getElementById('parkBtn').disabled = false;
+              document.getElementById('reportBtn').disabled = true; 
+            }else {
+              if (message == "Not available") {
+                document.getElementById('pslot').innerHTML = "Parking Location : Not available";
+                document.getElementById('removeBtn').disabled = true;
+                document.getElementById('parkBtn').disabled = false;
+                document.getElementById('removeBtn').disabled = true;
+              }else {
+                document.getElementById('parkBtn').disabled = true;
+                document.getElementById('pslot').innerHTML = "Parking Location : <span class=\"slot\">" + message + "</span>";              
+                document.getElementById('removeBtn').disabled = false;
+                document.getElementById('reportBtn').disabled = false;
+                document.getElementById('reportBtn').innerHTML = "Report Wrong Parking";      
+              }
+            }
+            document.body.style.cursor = 'default';
+            document.getElementById('loading').style.display = 'none';
+            fetchParkingGrid() ;
+            })            .withFailureHandler((error) => {
+            alert('Error: ' + error.message); // Handle errors gracefully
+            
+            if ( document.getElementById('parkBtn'))
+              document.getElementById('parkBtn').disabled = false;
+            if (document.getElementById('removeBtn')) 
+              document.getElementById('removeBtn').disabled = false;
+              document.body.style.cursor = 'default';
+              document.getElementById('loading').style.display = 'none';
+
+          })
+          .serverAction(action); // Call the appropriate server function
+
+          
+      }
+
+function handleReport() {
+  const fileInput = document.createElement("input");
+  fileInput.type = "file";
+  fileInput.accept = "image/*";
+  fileInput.capture = "camera";  // For mobile camera capture
+
+  fileInput.onchange = function (event) {
+    const file = event.target.files[0];
+    if (file) {
+      const reader = new FileReader();
+
+      reader.onload = function (event) {
+        const img = new Image();
+        img.src = event.target.result;
+
+        img.onload = function () {
+          // Create a canvas for resizing
+          const canvas = document.createElement('canvas');
+          const ctx = canvas.getContext('2d');
+
+          const targetWidth = 500;
+          const targetHeight = 500;
+
+          canvas.width = targetWidth;
+          canvas.height = targetHeight;
+
+          // Draw the resized image on the canvas
+          ctx.drawImage(img, 0, 0, targetWidth, targetHeight);
+
+          // Convert the canvas image back to base64
+          const base64 = canvas.toDataURL('image/png').split(",")[1];  // JPEG format to reduce size
+
+          // Disable buttons and show loading indicator
+          document.getElementById('reportBtn').disabled = true;
+          document.getElementById('removeBtn').disabled = true;
+          document.body.style.cursor = 'wait';
+          document.getElementById('loading').style.display = 'block';
+
+          // Send the resized image to the server
+          google.script.run
+            .withSuccessHandler(() => {
+              document.getElementById('reportBtn').innerHTML = "Report Submitted";
+              document.getElementById('pslot').innerHTML = "Parking Location : Not assigned";
+              document.getElementById('removeBtn').disabled = true;
+              document.getElementById('parkBtn').disabled = false;
+              document.getElementById('reportBtn').disabled = true;
+              document.body.style.cursor = 'default';
+              document.getElementById('loading').style.display = 'none';
+              fetchParkingGrid();
+            })
+            .withFailureHandler((error) => {
+              alert("Failed: " + error.message);
+              document.body.style.cursor = 'default';
+              document.getElementById('loading').style.display = 'none';
+            })
+            .sendReportEmail(base64, file.name);
+        };
+      };
+      reader.readAsDataURL(file);
+    }
+  };
+  fileInput.click();
+}
+
+</script>
+
+  </head>
+  <body>
+    <div id="topSection">
+    <h1>Hubtown Heaven</h1>
+    <h1>Parking Assignment System</h1>
+    <p id="welcomeMsg">Hello, <?= userDetails.Email ?> from Flat <b><?= userDetails.FlatNumber ?> </b>!</p>
+    <div id="content">
+      <div id="loading" class="loading">
+   <p id="prcs"><div class="spinner"></div> Processing... </p>
+</div>
+
+    <? if (parkingSlot) { ?>
+      <p id="pslot"> Parking Location : <span class="slot"><?= parkingSlot.slot ?></span> </p>
+      <button id="removeBtn" onclick="handleAction('removeCar')">Remove Car</button>
+      <button id="parkBtn" onclick="handleAction('parkCar')" disabled visibility="hidden">Park Your Car</button>
+     <p>      
+     <button id="reportBtn" class="report-btn" onclick="handleReport()">Report Wrong Parking</button>
+     </p>
+    <? } else { ?>
+      <p id="pslot"> Parking Location : Not assigned </p>
+      <button id="removeBtn" onclick="handleAction('removeCar')" disabled visibility="hidden">Remove Car</button>
+      <button id="parkBtn" onclick="handleAction('parkCar')">Park Your Car</button>
+     <p>      
+     <button id="reportBtn" class="report-btn" onclick="handleReport()" disabled>Report Wrong Parking</button>     
+    <? } ?>
+     <p id="hptext">
+         Another car parked at your assigned parking location? report it by clicking above button
+     </p>
+
+    </div>
+<h3>Puzzle Parking View</h3>
+<div id="gridWrapper">
+  <div class="parking-grid" id="gridContainer">
+    <!-- Grid will be populated here -->
+  </div>
+</div>
+
+    <h3>Occupied Parking Slots</h3>
+  <div id="occupiedSlotsContainer">
+    <table id="occupiedSlotsTable">
+      <thead>
+        <tr>
+          <th>Flat</th>
+          <th>Parking Slot</th>
+          <th>Timestamp</th>
+        </tr>
+      </thead>
+      <tbody id="occupiedSlotsBody">
+        <tr><td colspan="3">Loading...</td></tr>
+      </tbody>
+    </table>
+  </div>
+
+  <script>
+    // Fetch and populate occupied slots
+    function fetchOccupiedSlots() {
+      google.script.run.withSuccessHandler(function(data) {
+        const tableBody = document.getElementById('occupiedSlotsBody');
+        tableBody.innerHTML = '';  // Clear existing rows
+
+        if (data.length === 0) {
+          tableBody.innerHTML = '<tr><td colspan="3">No occupied slots</td></tr>';
+        } else {
+          data.forEach((slot) => {
+            const row = `<tr>
+                          <td>${slot.flat}</td>
+                          <td>${slot.slot}</td>
+                          <td>${slot.timestamp}</td>
+                        </tr>`;
+            tableBody.innerHTML += row;
+          });
+        }
+      }).getOccupiedSlots();
+    }
+
+    // Fetch data on page load
+    //window.onload = fetchOccupiedSlots;
+  </script>
+
+
+
+</div>
+  <script>
+    // Populate Parking Grid
+    function generateParkingGrid(slotStatus) {
+      const gridContainer = document.getElementById('gridContainer');
+      gridContainer.innerHTML = '';
+
+      for (let row = 7; row >= 1; row--) {
+        for (let col = 1; col <= 4; col++) {
+          const slotNumber = `${row}0${col}`;
+          const slot = `B - ${slotNumber}`;
+          const slotDiv = document.createElement('div');
+          
+          // Apply NA for invalid slots in columns 4 for rows 1-6
+          if (col === 4 && row < 7) {
+            slotDiv.classList.add('slotbox', 'na');
+            slotDiv.textContent = 'NA';
+          } else {
+            slotDiv.classList.add('slotbox');
+            
+            // Mark slot as occupied, available, or NA
+            if (slotStatus[slot] === 'Occupied') {
+              slotDiv.classList.add('occupied');
+              slotDiv.textContent = '⚫';
+            } else {
+              slotDiv.classList.add('available');
+              slotDiv.textContent = '⚫';
+            }
+          }
+          gridContainer.appendChild(slotDiv);
+        }
+      }
+    }
+
+    // Fetch occupied/available slots from server and generate grid
+    function fetchParkingGrid() {
+      google.script.run.withSuccessHandler(function(slotStatus) {
+        generateParkingGrid(slotStatus);
+      }).getParkingGrid();
+      fetchOccupiedSlots();
+      window.scrollTo({ top: 0, behavior: 'smooth' });
+    }
+
+    // Load grid on page load
+    window.onload = fetchParkingGrid;
+  </script>
+ 
+  </body>
+</html>
