@@ -3,6 +3,7 @@
   <head>
     <title>Parking System 1</title>
     <link rel="stylesheet" href="styles.css">
+    <script src="google.js"></script>
     <script>
       function handleAction(action) {
         // Disable buttons after click to prevent multiple submissions
@@ -250,6 +251,6 @@ function handleReport() {
     // Load grid on page load
     window.onload = fetchParkingGrid;
   </script>
- 
+   <script src="https://accounts.google.com/gsi/client" onload="initializeOAuth()"></script>
   </body>
 </html>
