@@ -12,16 +12,19 @@
         }
         .cell {
             width: 120px;
-            height: 50px;
+            height: 60px;
             display: flex;
+            flex-direction: column;
             align-items: center;
             justify-content: center;
             border: 1px solid black;
             cursor: pointer;
             text-align: center;
+            padding: 5px;
         }
         .empty { background-color: green; color: white; }
         .occupied { background-color: white; color: red; }
+        .disabled { background-color: grey; color: white; cursor: default; }
         .hidden { display: none; }
         .popup {
             position: fixed;
@@ -33,120 +36,52 @@
             border: 1px solid black;
             box-shadow: 2px 2px 10px gray;
         }
+        .popup label, .popup select, .popup button {
+            display: block;
+            margin-top: 10px;
+        }
     </style>
 </head>
 <body>
     <h2>Parking Allocation</h2>
     <div class="grid" id="parkingGrid"></div>
     
-    <div id="parkPopup" class="popup hidden">
-        <label>Wing: 
-            <select id="wingSelect" onchange="updateFlats()">
-                <option value="A">A</option>
-                <option value="B">B</option>
-                <option value="C">C</option>
-            </select>
-        </label>
-        <label>Flat: 
-            <select id="flatSelect"></select>
-        </label>
-        <button onclick="parkCar()">Park</button>
-        <button onclick="closePopup()">Cancel</button>
-    </div>
-    
-    <div id="emptyPopup" class="popup hidden">
-        <p>Empty the parking slot?</p>
-        <button onclick="emptySlot()">OK</button>
-        <button onclick="closePopup()">Cancel</button>
-    </div>
-    
     <script>
         const grid = document.getElementById("parkingGrid");
         let selectedCell = null;
-        let parkingSlots = Array.from({ length: 7 }, (_, r) => 
-            Array.from({ length: r === 6 ? 4 : 3 }, (_, c) => `${(r + 1) * 100 + (c + 1)} - Empty`)
-        );
-        let parkedFlats = {};
+        let parkingSlots = [];
+
+        for (let r = 7; r >= 1; r--) {
+            let row = [];
+            for (let c = 1; c <= 4; c++) {
+                if (r < 7 && c === 4) {
+                    row.push({ slot: "", status: "Disabled" });
+                } else {
+                    row.push({ slot: `${r}0${c}`, status: "Empty" });
+                }
+            }
+            parkingSlots.push(row);
+        }
 
         function renderGrid() {
             grid.innerHTML = "";
-            parkingSlots.forEach((row, r) => {
-                row.forEach((slot, c) => {
+            parkingSlots.forEach(row => {
+                row.forEach(({ slot, status }) => {
                     const cell = document.createElement("div");
-                    cell.className = `cell ${slot.includes("Empty") ? "empty" : "occupied"}`;
-                    cell.textContent = slot;
-                    cell.onclick = () => handleCellClick(r, c);
+                    cell.className = `cell ${status === "Empty" ? "empty" : status === "Disabled" ? "disabled" : "occupied"}`;
+                    cell.innerHTML = slot ? `<strong>${slot}</strong><br>${status}` : "";
+                    if (status !== "Disabled") {
+                        cell.onclick = () => handleCellClick(slot);
+                    }
                     grid.appendChild(cell);
                 });
             });
         }
-        
-        function handleCellClick(r, c) {
-            selectedCell = { r, c };
-            if (parkingSlots[r][c].includes("Empty")) {
-                document.getElementById("parkPopup").classList.remove("hidden");
-                updateFlats();
-            } else {
-                document.getElementById("emptyPopup").classList.remove("hidden");
-            }
+
+        function handleCellClick(slot) {
+            alert(`Slot ${slot} clicked`);
         }
-        
-        function updateFlats() {
-            const wing = document.getElementById("wingSelect").value;
-            const flatSelect = document.getElementById("flatSelect");
-            flatSelect.innerHTML = "";
-            let flats = [];
-            if (wing === "A") {
-                flats = Array.from({ length: 13 }, (_, i) => [i + 1 + "01", i + 1 + "02"]).flat();
-            } else if (wing === "B") {
-                flats = Array.from({ length: 13 }, (_, i) => [i + 1 + "01", i + 1 + "02", i + 1 + "03"]).flat();
-            } else if (wing === "C") {
-                flats = Array.from({ length: 8 }, (_, i) => [i + 1 + "01", i + 1 + "02"]).flat();
-            }
-            flats.forEach(f => {
-                if (!parkedFlats[f] || (f === "1301" || f === "1302") && parkedFlats[f] < 2) {
-                    const option = document.createElement("option");
-                    option.value = f;
-                    option.textContent = f;
-                    flatSelect.appendChild(option);
-                }
-            });
-        }
-        
-        function parkCar() {
-            const wing = document.getElementById("wingSelect").value;
-            const flat = document.getElementById("flatSelect").value;
-            if (!parkedFlats[flat]) {
-                parkedFlats[flat] = 1;
-            } else if ((flat === "1301" || flat === "1302") && parkedFlats[flat] < 2) {
-                parkedFlats[flat]++;
-            } else {
-                alert("This flat already has a parking slot.");
-                return;
-            }
-            parkingSlots[selectedCell.r][selectedCell.c] = `${(selectedCell.r + 1) * 100 + (selectedCell.c + 1)} - ${wing}-${flat}`;
-            closePopup();
-            renderGrid();
-        }
-        
-        function emptySlot() {
-            const slotNumber = (selectedCell.r + 1) * 100 + (selectedCell.c + 1);
-            const [slot, wingFlat] = parkingSlots[selectedCell.r][selectedCell.c].split(" - ");
-            const flat = wingFlat.split("-")[1];
-            if (parkedFlats[flat]) {
-                parkedFlats[flat]--;
-                if (parkedFlats[flat] === 0) delete parkedFlats[flat];
-            }
-            parkingSlots[selectedCell.r][selectedCell.c] = `${slotNumber} - Empty`;
-            closePopup();
-            renderGrid();
-        }
-        
-        function closePopup() {
-            document.getElementById("parkPopup").classList.add("hidden");
-            document.getElementById("emptyPopup").classList.add("hidden");
-        }
-        
+
         renderGrid();
     </script>
 </body>
