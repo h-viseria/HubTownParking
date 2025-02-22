@@ -8,12 +8,19 @@
     <style>
         .grid {
             display: grid;
-            grid-template-columns: repeat(auto-fit, minmax(80px, 1fr)); /* Flexible grid */
+            grid-template-columns: repeat(4, 1fr); /* Ensure exactly 4 columns on desktop */
             gap: 5px;
-            width: 100%; /* Make sure it fits the container */
-            max-width: 480px; /* Prevents stretching on large screens */
-            margin: auto; /* Centers the grid */
+            width: 100%;
+            max-width: 480px;
+            margin: auto;
         }
+        
+        @media (max-width: 600px) {
+            .grid {
+                grid-template-columns: repeat(3, 1fr); /* Change to 3 columns on small screens */
+            }
+        }
+
         .cell {
             width: 100%; /* Make sure each cell takes full column width */
             height: 60px;
