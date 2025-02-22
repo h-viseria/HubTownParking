@@ -4,6 +4,7 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Parking Allocation</title>
+    <script src="https://apis.google.com/js/api.js"></script> <!-- Load Google API -->
     <style>
         .grid {
             display: grid;
@@ -41,15 +42,12 @@
             margin-top: 10px;
         }
     </style>
-
-    <script>
-</script>
-
 </head>
 <body>
     <h2>Parking Allocation</h2>
+    <button onclick="handleAuthClick()">Authorize</button> <!-- OAuth Button -->
     <div class="grid" id="parkingGrid"></div>
-    
+
     <div id="parkPopup" class="popup hidden">
         <label>Wing: 
             <select id="wingSelect" onchange="updateFlats()">
@@ -64,32 +62,75 @@
         <button onclick="parkCar()">Park</button>
         <button onclick="closePopup()">Cancel</button>
     </div>
-    
+
     <div id="emptyPopup" class="popup hidden">
         <p>Empty the parking slot?</p>
         <button onclick="emptySlot()">OK</button>
         <button onclick="closePopup()">Cancel</button>
     </div>
-    
+
     <script>
-        const grid = document.getElementById("parkingGrid");
+        const CLIENT_ID = "231804756203-pon52d0g8l3arj4efscmedusaknankda.apps.googleusercontent.com"; // Replace with your Client ID
+        const API_KEY = "YOUR_API_KEY"; // Replace with your API Key
+        const SHEET_ID = "12Va7yzdDhdp5NfSGXYrNtF6ZCHZxKq9gRnq0S9Xo0M8"; // Replace with your Google Sheet ID
+        const RANGE = "Sheet1!A:B"; // Adjust based on your sheet structure
+        const DISCOVERY_DOCS = ["https://sheets.googleapis.com/$discovery/rest?version=v4"];
+        const SCOPES = "https://www.googleapis.com/auth/spreadsheets";
+
         let selectedCell = null;
         let parkingSlots = [];
         let parkedFlats = {};
 
-        for (let r = 7; r >= 1; r--) {
-            let row = [];
-            for (let c = 1; c <= 4; c++) {
-                if (r < 7 && c === 4) {
-                    row.push({ slot: "", status: "Disabled" });
-                } else {
-                    row.push({ slot: `${r}0${c}`, status: "Empty" });
+        function gapiLoaded() {
+            gapi.load("client:auth2", initializeGAPI);
+        }
+
+        function initializeGAPI() {
+            gapi.client.init({
+                apiKey: API_KEY,
+                clientId: CLIENT_ID,
+                discoveryDocs: DISCOVERY_DOCS,
+                scope: SCOPES
+            });
+        }
+
+        function handleAuthClick() {
+            gapi.auth2.getAuthInstance().signIn().then(() => {
+                fetchParkingData();
+            });
+        }
+
+        async function fetchParkingData() {
+            try {
+                const response = await gapi.client.sheets.spreadsheets.values.get({
+                    spreadsheetId: SHEET_ID,
+                    range: RANGE
+                });
+
+                const data = response.result.values || [];
+
+                parkingSlots = [];
+                for (let r = 7; r >= 1; r--) {
+                    let row = [];
+                    for (let c = 1; c <= 4; c++) {
+                        if (r < 7 && c === 4) {
+                            row.push({ slot: "", status: "Disabled" });
+                        } else {
+                            const slotNum = `${r}0${c}`;
+                            const found = data.find(d => d[0] === slotNum);
+                            row.push({ slot: slotNum, status: found ? found[1] : "Empty" });
+                        }
+                    }
+                    parkingSlots.push(row);
                 }
+                renderGrid();
+            } catch (error) {
+                console.error("Error fetching data:", error);
             }
-            parkingSlots.push(row);
         }
 
         function renderGrid() {
+            const grid = document.getElementById("parkingGrid");
             grid.innerHTML = "";
             parkingSlots.forEach(row => {
                 row.forEach(({ slot, status }) => {
@@ -116,57 +157,30 @@
             }
         }
 
-        function updateFlats() {
-            const wing = document.getElementById("wingSelect").value;
-            const flatSelect = document.getElementById("flatSelect");
-            flatSelect.innerHTML = "";
-            let flats = [];
-            if (wing === "A") {
-                flats = Array.from({ length: 13 }, (_, i) => [i + 1 + "01", i + 1 + "02"]).flat();
-            } else if (wing === "B") {
-                flats = Array.from({ length: 13 }, (_, i) => [i + 1 + "01", i + 1 + "02", i + 1 + "03"]).flat();
-            } else if (wing === "C") {
-                flats = Array.from({ length: 8 }, (_, i) => [i + 1 + "01", i + 1 + "02"]).flat();
+        async function updateParking(slot, status) {
+            try {
+                await gapi.client.sheets.spreadsheets.values.update({
+                    spreadsheetId: SHEET_ID,
+                    range: `Sheet1!B${parseInt(slot) + 1}`, // Adjust row number based on sheet structure
+                    valueInputOption: "RAW",
+                    resource: { values: [[status]] }
+                });
+                fetchParkingData();
+            } catch (error) {
+                console.error("Error updating data:", error);
             }
-            flats.forEach(f => {
-                if (!parkedFlats[f] || (f === "1301" || f === "1302") && parkedFlats[f] < 2) {
-                    const option = document.createElement("option");
-                    option.value = f;
-                    option.textContent = f;
-                    flatSelect.appendChild(option);
-                }
-            });
         }
 
-        function parkCar1() {
+        function parkCar() {
             const wing = document.getElementById("wingSelect").value;
             const flat = document.getElementById("flatSelect").value;
-            if (!parkedFlats[flat]) {
-                parkedFlats[flat] = 1;
-            } else if ((flat === "1301" || flat === "1302") && parkedFlats[flat] < 2) {
-                parkedFlats[flat]++;
-            } else {
-                alert("This flat already has a parking slot.");
-                return;
-            }
-            const row = parkingSlots.find(r => r.some(c => c.slot === selectedCell));
-            const cell = row.find(c => c.slot === selectedCell);
-            cell.status = `${wing}-${flat}`;
+            updateParking(selectedCell, `${wing}-${flat}`);
             closePopup();
-            renderGrid();
         }
 
-        function emptySlot1() {
-            const row = parkingSlots.find(r => r.some(c => c.slot === selectedCell));
-            const cell = row.find(c => c.slot === selectedCell);
-            const flat = cell.status.split("-")[1];
-            if (parkedFlats[flat]) {
-                parkedFlats[flat]--;
-                if (parkedFlats[flat] === 0) delete parkedFlats[flat];
-            }
-            cell.status = "Empty";
+        function emptySlot() {
+            updateParking(selectedCell, "Empty");
             closePopup();
-            renderGrid();
         }
 
         function closePopup() {
@@ -174,79 +188,11 @@
             document.getElementById("emptyPopup").classList.add("hidden");
         }
 
-        renderGrid();
-
-            const scriptURL = "https://script.google.com/macros/library/d/140rPxosRh_ol-uhTXIFBchsMVWvvOdBrCszW_71WLWIHm3ucLutEVvJl/3"; // Replace with your Apps Script deployment URL
-const WEB_APP_URL = "https://script.google.com/macros/s/AKfycbx3wM9Cup0UhG5L2KlLLxX-UVZV6LHWYu9RPmTiGD2VyVr-ApD3b5VyzuTqn7g2hdQM/exec";
-        
-    async function fetchParkingData() {
-        let response = await fetch(WEB_APP_URL)
-            .then(response => response.json())
-            .then(data => console.log(data))
-            .catch(error => console.error("Error:", error));
-
-        let data = await response.json();
-        parkingSlots.forEach(row => {
-            row.forEach(slot => {
-                let found = data.find(d => d[0] === slot.slot);
-                if (found) {
-                    slot.status = found[1];
-                    if (found[1] === "Empty") {
-                        delete parkedFlats[slot.slot];
-                    } else {
-                        parkedFlats[found[1].split("-")[1]] = (parkedFlats[found[1].split("-")[1]] || 0) + 1;
-                    }
-                }
-            });
-        });
-        renderGrid();
-    }
-
-        
-    async function updateParking(slot, status) {
-        await fetch(scriptURL, {
-            method: "POST",
-            headers: { "Content-Type": "application/json" },
-            body: JSON.stringify({ action: "updateParking", slot, status })
-        });
-        fetchParkingData();
-    }
-
-    async function parkCar() {
-        const wing = document.getElementById("wingSelect").value;
-        const flat = document.getElementById("flatSelect").value;
-        if (!parkedFlats[flat]) {
-            parkedFlats[flat] = 1;
-        } else if ((flat === "1301" || flat === "1302") && parkedFlats[flat] < 2) {
-            parkedFlats[flat]++;
-        } else {
-            alert("This flat already has a parking slot.");
-            return;
-        }
-        const row = parkingSlots.find(r => r.some(c => c.slot === selectedCell));
-        const cell = row.find(c => c.slot === selectedCell);
-        cell.status = `${wing}-${flat}`;
-        closePopup();
-        renderGrid();
-        updateParking(selectedCell, `${wing}-${flat}`);
-    }
-
-    async function emptySlot() {
-        const row = parkingSlots.find(r => r.some(c => c.slot === selectedCell));
-        const cell = row.find(c => c.slot === selectedCell);
-        const flat = cell.status.split("-")[1];
-        if (parkedFlats[flat]) {
-            parkedFlats[flat]--;
-            if (parkedFlats[flat] === 0) delete parkedFlats[flat];
-        }
-        cell.status = "Empty";
-        closePopup();
-        renderGrid();
-        updateParking(selectedCell, "Empty");
-    }
-
-    fetchParkingData();
-
+        window.onload = () => {
+            gapiLoaded();
+        };
     </script>
+
+    <script async defer src="https://apis.google.com/js/api.js" onload="gapiLoaded()"></script>
 </body>
 </html>
