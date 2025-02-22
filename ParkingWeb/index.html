@@ -162,6 +162,30 @@
             closePopup();
         }
 
+        function updateFlats() {
+            const wing = document.getElementById("wingSelect").value;
+            const flatSelect = document.getElementById("flatSelect");
+            flatSelect.innerHTML = "";
+            
+            let flats = [];
+            if (wing === "A" || wing === "C") {
+                for (let i = 1; i <= (wing === "A" ? 13 : 8); i++) {
+                    flats.push(`${i}01`, `${i}02`);
+                }
+            } else if (wing === "B") {
+                for (let i = 1; i <= 13; i++) {
+                    flats.push(`${i}01`, `${i}02`, `${i}03`);
+                }
+            }
+            
+            flats.forEach(flat => {
+                let option = document.createElement("option");
+                option.value = flat;
+                option.textContent = flat;
+                flatSelect.appendChild(option);
+            });
+        }
+
         function emptySlot() {
             updateParking(selectedSlot, "Empty");
             closePopup();
@@ -171,6 +195,8 @@
             document.getElementById("parkPopup").classList.add("hidden");
             document.getElementById("emptyPopup").classList.add("hidden");
         }
+
+        initGS();
     </script>
 </body>
 </html>
