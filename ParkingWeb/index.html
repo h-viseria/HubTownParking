@@ -41,6 +41,10 @@
             margin-top: 10px;
         }
     </style>
+
+    <script>
+</script>
+
 </head>
 <body>
     <h2>Parking Allocation</h2>
@@ -134,7 +138,7 @@
             });
         }
 
-        function parkCar() {
+        function parkCar1() {
             const wing = document.getElementById("wingSelect").value;
             const flat = document.getElementById("flatSelect").value;
             if (!parkedFlats[flat]) {
@@ -152,7 +156,7 @@
             renderGrid();
         }
 
-        function emptySlot() {
+        function emptySlot1() {
             const row = parkingSlots.find(r => r.some(c => c.slot === selectedCell));
             const cell = row.find(c => c.slot === selectedCell);
             const flat = cell.status.split("-")[1];
@@ -171,6 +175,72 @@
         }
 
         renderGrid();
+
+            const scriptURL = "https://script.google.com/macros/library/d/140rPxosRh_ol-uhTXIFBchsMVWvvOdBrCszW_71WLWIHm3ucLutEVvJl/1"; // Replace with your Apps Script deployment URL
+
+    async function fetchParkingData() {
+        let response = await fetch(scriptURL + "?action=getParkingData");
+        let data = await response.json();
+        parkingSlots.forEach(row => {
+            row.forEach(slot => {
+                let found = data.find(d => d[0] === slot.slot);
+                if (found) {
+                    slot.status = found[1];
+                    if (found[1] === "Empty") {
+                        delete parkedFlats[slot.slot];
+                    } else {
+                        parkedFlats[found[1].split("-")[1]] = (parkedFlats[found[1].split("-")[1]] || 0) + 1;
+                    }
+                }
+            });
+        });
+        renderGrid();
+    }
+
+    async function updateParking(slot, status) {
+        await fetch(scriptURL, {
+            method: "POST",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify({ action: "updateParking", slot, status })
+        });
+        fetchParkingData();
+    }
+
+    async function parkCar() {
+        const wing = document.getElementById("wingSelect").value;
+        const flat = document.getElementById("flatSelect").value;
+        if (!parkedFlats[flat]) {
+            parkedFlats[flat] = 1;
+        } else if ((flat === "1301" || flat === "1302") && parkedFlats[flat] < 2) {
+            parkedFlats[flat]++;
+        } else {
+            alert("This flat already has a parking slot.");
+            return;
+        }
+        const row = parkingSlots.find(r => r.some(c => c.slot === selectedCell));
+        const cell = row.find(c => c.slot === selectedCell);
+        cell.status = `${wing}-${flat}`;
+        closePopup();
+        renderGrid();
+        updateParking(selectedCell, `${wing}-${flat}`);
+    }
+
+    async function emptySlot() {
+        const row = parkingSlots.find(r => r.some(c => c.slot === selectedCell));
+        const cell = row.find(c => c.slot === selectedCell);
+        const flat = cell.status.split("-")[1];
+        if (parkedFlats[flat]) {
+            parkedFlats[flat]--;
+            if (parkedFlats[flat] === 0) delete parkedFlats[flat];
+        }
+        cell.status = "Empty";
+        closePopup();
+        renderGrid();
+        updateParking(selectedCell, "Empty");
+    }
+
+    fetchParkingData();
+
     </script>
 </body>
 </html>
