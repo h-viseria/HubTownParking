@@ -177,9 +177,14 @@
         renderGrid();
 
             const scriptURL = "https://script.google.com/macros/library/d/140rPxosRh_ol-uhTXIFBchsMVWvvOdBrCszW_71WLWIHm3ucLutEVvJl/3"; // Replace with your Apps Script deployment URL
-
+const WEB_APP_URL = "https://script.google.com/macros/s/AKfycbx3wM9Cup0UhG5L2KlLLxX-UVZV6LHWYu9RPmTiGD2VyVr-ApD3b5VyzuTqn7g2hdQM/exec";
+        
     async function fetchParkingData() {
-        let response = await fetch(scriptURL + "?action=getParkingData");
+        let response = await fetch(WEB_APP_URL)
+            .then(response => response.json())
+            .then(data => console.log(data))
+            .catch(error => console.error("Error:", error));
+
         let data = await response.json();
         parkingSlots.forEach(row => {
             row.forEach(slot => {
@@ -197,6 +202,7 @@
         renderGrid();
     }
 
+        
     async function updateParking(slot, status) {
         await fetch(scriptURL, {
             method: "POST",
