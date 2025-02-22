@@ -8,11 +8,14 @@
     <style>
         .grid {
             display: grid;
-            grid-template-columns: repeat(4, 120px);
+            grid-template-columns: repeat(auto-fit, minmax(80px, 1fr)); /* Flexible grid */
             gap: 5px;
+            width: 100%; /* Make sure it fits the container */
+            max-width: 480px; /* Prevents stretching on large screens */
+            margin: auto; /* Centers the grid */
         }
         .cell {
-            width: 120px;
+            width: 100%; /* Make sure each cell takes full column width */
             height: 60px;
             display: flex;
             flex-direction: column;
@@ -22,8 +25,9 @@
             cursor: pointer;
             text-align: center;
             padding: 5px;
-            font-size: 14px;
+            font-size: 12px; /* Reduce font size for better fit */
         }
+
         .empty { background-color: green; color: white; }
         .occupied { background-color: white; color: red; }
         .disabled { background-color: grey; color: white; cursor: default; }
@@ -37,6 +41,7 @@
             padding: 20px;
             border: 1px solid black;
             box-shadow: 2px 2px 10px gray;
+            font-size: 12px; /* Reduce font size for better fit */
         }
         .popup label, .popup select, .popup button {
             display: block;
