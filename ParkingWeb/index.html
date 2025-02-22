@@ -113,7 +113,7 @@
             
             for (let r = 7; r >= 1; r--) {
                 for (let c = 1; c <= 4; c++) {
-                    const slot = r === 7 ? `7${c}` : r * 100 + c;
+                    const slot = r === 7 ? `70${c}` : r * 100 + c;
                     const cell = document.createElement("div");
                     cell.className = `cell ${c === 4 && r < 7 ? "disabled" : parkingData[slot] ? "occupied" : "empty"}`;
                     
