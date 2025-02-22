@@ -103,7 +103,7 @@
                         accessToken = response.access_token;
                 
                         localStorage.setItem('google_access_token', accessToken);
-                        localStorage.setItem('google_token_expires', Date.now() + tokenResponse.expires_in * 1000);
+                        localStorage.setItem('google_token_expires', Date.now() + response.expires_in * 1000);
 
                         fetchParkingData();
                     }
