@@ -4,7 +4,7 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Parking Allocation</title>
-    <script src="https://accounts.google.com/gsi/client" async defer></script>
+    <script src="https://accounts.google.com/gsi/client"></script>
     <style>
         .grid {
             display: grid;
@@ -50,15 +50,16 @@
     <div class="grid" id="parkingGrid"></div>
 
     <div id="parkPopup" class="popup hidden">
+        <div id="alertMessage" class="hidden" style="color: red; font-weight: bold;"></div>
         <label>Wing: 
-            <select id="wingSelect" onchange="updateFlats()">
+            <select id="wingSelect" onchange="updateFlats(); hideAlert()">
                 <option value="A">A</option>
                 <option value="B">B</option>
                 <option value="C">C</option>
             </select>
         </label>
         <label>Flat: 
-            <select id="flatSelect"></select>
+            <select id="flatSelect" onchange="hideAlert()"></select>
         </label>
         <button onclick="parkCar()">Park</button>
         <button onclick="closePopup()">Cancel</button>
@@ -158,8 +159,24 @@
         function parkCar() {
             const wing = document.getElementById("wingSelect").value;
             const flat = document.getElementById("flatSelect").value;
+
+            // Check if the flat is already assigned
+            for (const slot in parkingData) {
+                if (parkingData[slot] === selectedFlat) {
+                    if (!(wing === "A" && (flat === "1301" || flat === "1302"))) {
+                        alertDiv.textContent = `Flat ${selectedFlat} is already assigned to another parking slot.`;
+                        alertDiv.classList.remove("hidden");
+                        return;
+                    }
+                }
+            }
+            
             updateParking(selectedSlot, `${wing}-${flat}`);
             closePopup();
+        }
+
+        function hideAlert() {
+            document.getElementById("alertMessage").classList.add("hidden");
         }
 
         function updateFlats() {
