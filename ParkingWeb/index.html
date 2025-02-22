@@ -15,17 +15,15 @@
             width: 120px;
             height: 60px;
             display: flex;
-            flex-direction: column;
             align-items: center;
             justify-content: center;
             border: 1px solid black;
             cursor: pointer;
             text-align: center;
-            padding: 5px;
+            font-weight: bold;
         }
         .empty { background-color: green; color: white; }
         .occupied { background-color: white; color: red; }
-        .disabled { background-color: grey; color: white; cursor: default; }
         .hidden { display: none; }
         .popup {
             position: fixed;
@@ -37,26 +35,22 @@
             border: 1px solid black;
             box-shadow: 2px 2px 10px gray;
         }
-        .popup label, .popup select, .popup button {
-            display: block;
-            margin-top: 10px;
-        }
     </style>
 </head>
 <body>
     <h2>Parking Allocation</h2>
-    <button onclick="initGIS()">Authorize</button> <!-- OAuth Button -->
+    <button onclick="initGIS()">Authorize</button>
     <div class="grid" id="parkingGrid"></div>
 
     <div id="parkPopup" class="popup hidden">
-        <label>Wing: 
+        <label>Wing:
             <select id="wingSelect" onchange="updateFlats()">
                 <option value="A">A</option>
                 <option value="B">B</option>
                 <option value="C">C</option>
             </select>
         </label>
-        <label>Flat: 
+        <label>Flat:
             <select id="flatSelect"></select>
         </label>
         <button onclick="parkCar()">Park</button>
@@ -76,13 +70,9 @@
         const RANGE = "Slots!A:B"; // Adjust based on your sheet structure
         const DISCOVERY_DOCS = ["https://sheets.googleapis.com/$discovery/rest?version=v4"];
         const SCOPES = "https://www.googleapis.com/auth/spreadsheets";
-
-        let selectedCell = null;
-        let parkingSlots = [];
-        let parkedFlats = {};    
         let accessToken = "";
+        let selectedSlot = null;
 
-        // Initialize Google Identity Services (GIS)
         function initGIS() {
             google.accounts.oauth2.initTokenClient({
                 client_id: CLIENT_ID,
@@ -91,80 +81,51 @@
                     if (response.access_token) {
                         accessToken = response.access_token;
                         fetchParkingData();
-                    } else {
-                        console.error("Error retrieving access token.");
                     }
                 },
             }).requestAccessToken();
         }
 
-        // Fetch Parking Data from Google Sheets
         async function fetchParkingData() {
-            const range = "Slots!A1:B23"; // Update the range based on your sheet
-            const url = `https://sheets.googleapis.com/v4/spreadsheets/${SHEET_ID}/values/${range}?key=${API_KEY}`;
-            
+            const url = `https://sheets.googleapis.com/v4/spreadsheets/${SHEET_ID}/values/${RANGE}?key=${API_KEY}`;
             try {
-                let response = await fetch(url, {
-                    headers: { Authorization: `Bearer ${accessToken}` },
-                });
-                let data = await response.json();
-                console.log("Fetched Data:", data);
+                const response = await fetch(url, { headers: { Authorization: `Bearer ${accessToken}` } });
+                const data = await response.json();
                 updateGrid(data.values);
             } catch (error) {
                 console.error("Error fetching parking data:", error);
             }
         }
 
-        // Update parking status in Google Sheets
-        async function updateParking(slot, status) {
-            const range = "Slots!A1:B23"; // Update this range
-            const url = `https://sheets.googleapis.com/v4/spreadsheets/${SHEET_ID}/values/${range}?valueInputOption=RAW`;
-
-            const body = {
-                range: range,
-                majorDimension: "ROWS",
-                values: [[slot, status]],
-            };
-
-            try {
-                let response = await fetch(url, {
-                    method: "PUT",
-                    headers: {
-                        Authorization: `Bearer ${accessToken}`,
-                        "Content-Type": "application/json",
-                    },
-                    body: JSON.stringify(body),
-                });
-                let result = await response.json();
-                console.log("Updated Parking Data:", result);
-                fetchParkingData(); // Refresh grid after update
-            } catch (error) {
-                console.error("Error updating parking data:", error);
-            }
-        }
-
-                
-        function renderGrid() {
+        function updateGrid(values) {
             const grid = document.getElementById("parkingGrid");
             grid.innerHTML = "";
-            parkingSlots.forEach(row => {
-                row.forEach(({ slot, status }) => {
-                    const cell = document.createElement("div");
-                    cell.className = `cell ${status === "Empty" ? "empty" : status === "Disabled" ? "disabled" : "occupied"}`;
-                    cell.innerHTML = slot ? `<strong>${slot}</strong><br>${status}` : "";
-                    if (status !== "Disabled") {
-                        cell.onclick = () => handleCellClick(slot);
-                    }
-                    grid.appendChild(cell);
-                });
+            const slots = generateParkingSlots();
+
+            slots.forEach(slot => {
+                const status = values.find(row => row[0] === slot)?.[1] || "Empty";
+                const cell = document.createElement("div");
+                cell.className = `cell ${status === "Empty" ? "empty" : "occupied"}`;
+                cell.textContent = status === "Empty" ? slot : status;
+                cell.onclick = () => handleCellClick(slot, status);
+                grid.appendChild(cell);
             });
         }
 
-        function handleCellClick(slot) {
-            selectedCell = slot;
-            const row = parkingSlots.find(r => r.some(c => c.slot === slot));
-            const cell = row.find(c => c.slot === slot);
-            if (cell.status === "Empty") {
+        function generateParkingSlots() {
+            let slots = [];
+            for (let row = 1; row <= 7; row++) {
+                let cols = row === 7 ? 4 : 3;
+                for (let col = 1; col <= cols; col++) {
+                    slots.push(`${row}0${col}`);
+                }
+            }
+            return slots;
+        }
+
+        function handleCellClick(slot, status) {
+            selectedSlot = slot;
+            if (status === "Empty") {
                 document.getElementById("parkPopup").classList.remove("hidden");
                 updateFlats();
             } else {
@@ -172,29 +133,57 @@
             }
         }
 
+        function updateFlats() {
+            const wing = document.getElementById("wingSelect").value;
+            const flatSelect = document.getElementById("flatSelect");
+            flatSelect.innerHTML = "";
+
+            let flats = [];
+            if (wing === "A") {
+                for (let i = 1; i <= 13; i++) {
+                    flats.push(`${i}01`, `${i}02`);
+                }
+            } else if (wing === "B") {
+                for (let i = 1; i <= 13; i++) {
+                    flats.push(`${i}01`, `${i}02`, `${i}03`);
+                }
+            } else if (wing === "C") {
+                for (let i = 1; i <= 8; i++) {
+                    flats.push(`${i}01`, `${i}02`);
+                }
+            }
+            flats.forEach(flat => {
+                let option = document.createElement("option");
+                option.value = flat;
+                option.textContent = flat;
+                flatSelect.appendChild(option);
+            });
+        }
+
         async function updateParking(slot, status) {
+            const url = `https://sheets.googleapis.com/v4/spreadsheets/${SHEET_ID}/values/${RANGE}?valueInputOption=RAW`;
+            const body = { range: RANGE, majorDimension: "ROWS", values: [[slot, status]] };
             try {
-                await gapi.client.sheets.spreadsheets.values.update({
-                    spreadsheetId: SHEET_ID,
-                    range: `Sheet1!B${parseInt(slot) + 1}`, // Adjust row number based on sheet structure
-                    valueInputOption: "RAW",
-                    resource: { values: [[status]] }
+                await fetch(url, {
+                    method: "PUT",
+                    headers: { Authorization: `Bearer ${accessToken}`, "Content-Type": "application/json" },
+                    body: JSON.stringify(body),
                 });
                 fetchParkingData();
             } catch (error) {
-                console.error("Error updating data:", error);
+                console.error("Error updating parking data:", error);
             }
         }
 
         function parkCar() {
             const wing = document.getElementById("wingSelect").value;
             const flat = document.getElementById("flatSelect").value;
-            updateParking(selectedCell, `${wing}-${flat}`);
+            updateParking(selectedSlot, `${wing}-${flat}`);
             closePopup();
         }
 
         function emptySlot() {
-            updateParking(selectedCell, "Empty");
+            updateParking(selectedSlot, "Empty");
             closePopup();
         }
 
@@ -202,10 +191,6 @@
             document.getElementById("parkPopup").classList.add("hidden");
             document.getElementById("emptyPopup").classList.add("hidden");
         }
-
-       initGIS() ;   
     </script>
-
-    
 </body>
 </html>
