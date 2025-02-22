@@ -143,11 +143,7 @@
             }
         }
 
-        // Call GIS authentication when the page loads
-        window.onload = () => {
-            document.getElementById("loginButton").onclick = initGIS;
-        };
-        
+                
         function renderGrid() {
             const grid = document.getElementById("parkingGrid");
             grid.innerHTML = "";
@@ -207,7 +203,7 @@
             document.getElementById("emptyPopup").classList.add("hidden");
         }
 
-    
+       initGIS() ;   
     </script>
 
     
