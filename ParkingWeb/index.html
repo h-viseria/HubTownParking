@@ -45,8 +45,8 @@
     </style>
 </head>
 <body>
-    <h2>Parking Allocation</h2>
-    <button onclick="initGIS()">Authorize</button>
+    <h2>Hubtown Heaven Small Parking</h2>
+    <button id="authorizeBtn" onclick="initGIS()">Authorize</button>
     <div class="grid" id="parkingGrid"></div>
 
     <div id="parkPopup" class="popup hidden">
@@ -92,6 +92,8 @@
               accessToken = storedToken;
               console.log('Reusing stored access token:', storedToken);
               fetchParkingData();
+              const authBtn = document.getElementById("authorizeBtn");
+              authBth.classList.add("hidden");
               return ;
             }
             
