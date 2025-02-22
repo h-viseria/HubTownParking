@@ -1,7 +1,7 @@
 {
   "name": "Parking App",
   "short_name": "Parking",
-  "start_url": "/",
+  "start_url": "/HubTownParking/ParkingWeb/",
   "display": "standalone",
   "background_color": "#ffffff",
   "theme_color": "#007bff",
