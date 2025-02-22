@@ -100,7 +100,7 @@
 
         // Fetch Parking Data from Google Sheets
         async function fetchParkingData() {
-            const range = "Sheet1!A1:B20"; // Update the range based on your sheet
+            const range = "Slots!A1:B23"; // Update the range based on your sheet
             const url = `https://sheets.googleapis.com/v4/spreadsheets/${SHEET_ID}/values/${range}?key=${API_KEY}`;
             
             try {
@@ -117,7 +117,7 @@
 
         // Update parking status in Google Sheets
         async function updateParking(slot, status) {
-            const range = "Sheet1!A1:B20"; // Update this range
+            const range = "Slots!A1:B23"; // Update this range
             const url = `https://sheets.googleapis.com/v4/spreadsheets/${SHEET_ID}/values/${range}?valueInputOption=RAW`;
 
             const body = {
