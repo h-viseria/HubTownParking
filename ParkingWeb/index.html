@@ -84,12 +84,27 @@
         let selectedSlot = "";
 
         function initGIS() {
+            const storedToken = localStorage.getItem('google_access_token');
+            const tokenExpires = localStorage.getItem('google_token_expires');
+            
+            if (storedToken && tokenExpires && Date.now() < parseInt(tokenExpires)) {
+              // Token exists and is valid
+              accessToken = storedToken;
+              console.log('Reusing stored access token:', storedToken);
+              fetchParkingData();
+              return ;
+            }
+            
             google.accounts.oauth2.initTokenClient({
                 client_id: CLIENT_ID,
                 scope: "https://www.googleapis.com/auth/spreadsheets",
                 callback: (response) => {
                     if (response.access_token) {
                         accessToken = response.access_token;
+                
+                        localStorage.setItem('google_access_token', accessToken);
+                        localStorage.setItem('google_token_expires', Date.now() + tokenResponse.expires_in * 1000);
+
                         fetchParkingData();
                     }
                 },
@@ -159,7 +174,9 @@
         function parkCar() {
             const wing = document.getElementById("wingSelect").value;
             const flat = document.getElementById("flatSelect").value;
-
+            const selectedFlat = `${wing}-${flat}`;
+            const alertDiv = document.getElementById("alertMessage");
+            
             // Check if the flat is already assigned
             for (const slot in parkingData) {
                 if (parkingData[slot] === selectedFlat) {
@@ -213,6 +230,7 @@
             document.getElementById("emptyPopup").classList.add("hidden");
         }
 
+        
         initGIS();
     </script>
 </body>
