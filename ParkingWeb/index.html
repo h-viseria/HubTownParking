@@ -180,7 +180,7 @@
 
         function handleCellClick(slot) {
             selectedSlot = slot;
-            if (parkingData[slot]) {
+            if (!(parkingData[slot] === "" || !parkingData[slot] || parkingData[slot] === "Empty")) {
                 document.getElementById("emptyPopup").classList.remove("hidden");
             } else {
                 document.getElementById("parkPopup").classList.remove("hidden");
