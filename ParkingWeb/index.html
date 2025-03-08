@@ -189,6 +189,29 @@
             }
         }
 
+        async function getUserEmail() {
+            const response = await fetch("https://www.googleapis.com/oauth2/v2/userinfo", {
+                headers: { Authorization: `Bearer ${accessToken}` }
+            });
+            const data = await response.json();
+            return data.email || "Unknown";
+        }
+
+        async function appendLogEntry(logEntry) {
+            const url = `https://sheets.googleapis.com/v4/spreadsheets/${SHEET_ID}/values/Log!A:E:append?valueInputOption=RAW`;
+            const body = { values: logEntry };
+            
+            try {
+                await fetch(url, {
+                    method: "POST",
+                    headers: { Authorization: `Bearer ${accessToken}`, "Content-Type": "application/json" },
+                    body: JSON.stringify(body)
+                });
+            } catch (error) {
+                console.error("Error logging entry:", error);
+            }
+        }
+
         async function updateParking(slot, value) {
             const url = `https://sheets.googleapis.com/v4/spreadsheets/${SHEET_ID}/values/Slots!A${slot}:B${slot}?valueInputOption=RAW`;
             const body = { values: [[slot, value]] };
@@ -199,6 +222,16 @@
                     headers: { Authorization: `Bearer ${accessToken}`, "Content-Type": "application/json" },
                     body: JSON.stringify(body)
                 });
+
+                // Capture log data
+                const action = (value === "Empty") ? "Removed" : "Added";
+                const userEmail = await getUserEmail();
+                const timestamp = new Date().toISOString();
+                const logEntry = [[userEmail, timestamp, slot, value, action]]; 
+                
+                // Append to "Log" sheet
+                await appendLogEntry(logEntry);
+                
                 parkingData[slot] = value === "Empty" ? "" : value;
                 renderGrid();
             } catch (error) {
