@@ -144,8 +144,40 @@
                     }
                 },
             }).requestAccessToken();
+
+            // Schedule auto-refresh before token expires
+            scheduleTokenRefresh(parseInt(tokenExpires) - Date.now());
         }
 
+        function requestNewAccessToken() {
+            google.accounts.oauth2.initTokenClient({
+                client_id: CLIENT_ID,
+                scope: "openid email https://www.googleapis.com/auth/spreadsheets",
+                callback: (response) => {
+                    if (response.access_token) {
+                        accessToken = response.access_token;
+                        const expiresInMs = response.expires_in * 1000;
+        
+                        localStorage.setItem('google_access_token', accessToken);
+                        localStorage.setItem('google_token_expires', Date.now() + expiresInMs);
+        
+                        
+                        fetchParkingData();
+        
+                        // Schedule auto-refresh before token expires
+                        scheduleTokenRefresh(expiresInMs - 60000); // Refresh 1 minute before expiry
+                    }
+                },
+            }).requestAccessToken();
+        }
+
+        function scheduleTokenRefresh(delay) {
+            setTimeout(() => {
+                console.log("Refreshing token...");
+                requestNewAccessToken(); // Automatically get a new token before expiry
+            }, delay);
+        }
+        
         async function fetchParkingData() {
             const url = `https://sheets.googleapis.com/v4/spreadsheets/${SHEET_ID}/values/Slots!A:B?key=${API_KEY}`;
             try {
