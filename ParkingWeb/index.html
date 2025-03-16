@@ -50,12 +50,18 @@
             box-shadow: 2px 2px 10px gray;
             font-size: 12px; /* Reduce font size for better fit */
         }
-        .popup label, .popup button {
+        .popup label {
             display: block;
             margin-top: 10px;
             font-size: 18px; /* Increase font size */
         }
 
+        .popup button {
+            display: block;
+            margin-top: 10px;
+            font-size: 25px; /* Increase font size */
+        }
+        
         .popup select {
             display: block;
             margin-top: 10px;
@@ -94,7 +100,7 @@
         <label>Flat: 
             <select id="flatSelect" onchange="hideAlert()"></select>
         </label>
-        <button onclick="parkCar()">Park</button>
+        <button onclick="parkCar()">Park</button> <BR/><BR/>
         <button onclick="closePopup()">Cancel</button>
     </div>
 
